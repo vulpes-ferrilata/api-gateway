@@ -1,0 +1,12 @@
+[
+    {
+        "locale": "en",
+        "key": "internal-error",
+        "trans": "something went wrong"
+    },
+    {
+        "locale": "en",
+        "key": "validation-error",
+        "trans": "the request contains invalid parameters, more information can be found in the errors"
+    }
+]
