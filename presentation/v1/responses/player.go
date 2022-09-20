@@ -5,9 +5,9 @@ type Player struct {
 	UserID           string             `json:"userID"`
 	Color            string             `json:"color"`
 	TurnOrder        int                `json:"turnOrder"`
-	IsOffered        bool               `json:"isTrading"`
+	IsOffered        bool               `json:"isOffered"`
 	IsActive         bool               `json:"isActive"`
-	IsMe             bool               `json:"isMe"`
+	Score            int                `json:"score"`
 	Achievements     []*Achievement     `json:"achievements"`
 	ResourceCards    []*ResourceCard    `json:"resourceCards"`
 	DevelopmentCards []*DevelopmentCard `json:"developmentCards"`

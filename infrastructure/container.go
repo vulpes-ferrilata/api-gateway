@@ -34,6 +34,7 @@ func NewContainer() *dig.Container {
 	container.Provide(presentation.NewRouter)
 	//--Controllers
 	container.Provide(controllers.NewAuthenticationController)
+	container.Provide(controllers.NewUserController)
 	container.Provide(controllers.NewCatanController)
 
 	return container

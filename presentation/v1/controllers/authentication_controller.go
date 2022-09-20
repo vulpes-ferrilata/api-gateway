@@ -85,7 +85,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 		return nil, errors.WithStack(err)
 	}
 
-	userCreatedResponse := responses.UserCreated{
+	userCreatedResponse := &responses.UserCreated{
 		ID: userID,
 	}
 

@@ -55,5 +55,11 @@ func (s statusError) Problem(translator ut.Translator) iris.Problem {
 		}
 	}
 
+	for _, detail := range s.status.Details() {
+		if debugInfo, ok := detail.(*errdetails.DebugInfo); ok {
+			problem.Key("stacktrace", debugInfo.GetStackEntries())
+		}
+	}
+
 	return problem
 }

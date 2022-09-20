@@ -10,11 +10,17 @@ func toTerrainHttpResponse(terrainGrpcResponse *catan.TerrainResponse) *response
 		return nil
 	}
 
+	harborHttpResponses := toHarborHttpResponse(terrainGrpcResponse.GetHarbor())
+
+	robberHttpResponse := toRobberHttpResponse(terrainGrpcResponse.GetRobber())
+
 	return &responses.Terrain{
 		ID:     terrainGrpcResponse.GetID(),
 		Q:      int(terrainGrpcResponse.GetQ()),
 		R:      int(terrainGrpcResponse.GetR()),
 		Number: int(terrainGrpcResponse.GetNumber()),
 		Type:   terrainGrpcResponse.GetType(),
+		Harbor: harborHttpResponses,
+		Robber: robberHttpResponse,
 	}
 }

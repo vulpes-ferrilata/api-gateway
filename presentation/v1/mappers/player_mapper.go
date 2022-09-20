@@ -38,7 +38,7 @@ func toPlayerHttpResponse(playerGrpcResponse *catan.PlayerResponse) *responses.P
 		TurnOrder:        int(playerGrpcResponse.GetTurnOrder()),
 		IsOffered:        playerGrpcResponse.GetIsOffered(),
 		IsActive:         playerGrpcResponse.GetIsActive(),
-		IsMe:             playerGrpcResponse.GetIsMe(),
+		Score:            int(playerGrpcResponse.GetScore()),
 		Achievements:     achievementHttpResponses,
 		ResourceCards:    resourceCardHttpResponses,
 		DevelopmentCards: developmentCardHttpResponses,

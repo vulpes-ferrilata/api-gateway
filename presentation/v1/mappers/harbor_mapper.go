@@ -11,10 +11,9 @@ func toHarborHttpResponse(harborGrpcResponse *catan.HarborResponse) *responses.H
 	}
 
 	return &responses.Harbor{
-		ID:        harborGrpcResponse.GetID(),
-		TerrainID: harborGrpcResponse.GetTerrainID(),
-		Q:         int(harborGrpcResponse.GetQ()),
-		R:         int(harborGrpcResponse.GetR()),
-		Type:      harborGrpcResponse.GetType(),
+		ID:   harborGrpcResponse.GetID(),
+		Q:    int(harborGrpcResponse.GetQ()),
+		R:    int(harborGrpcResponse.GetR()),
+		Type: harborGrpcResponse.GetType(),
 	}
 }

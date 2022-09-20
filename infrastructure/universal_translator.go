@@ -11,7 +11,7 @@ func NewUniversalTranslator() (*ut.UniversalTranslator, error) {
 
 	universalTranslator := ut.New(en, en)
 
-	if err := universalTranslator.Import(ut.FormatJSON, "./translation"); err != nil {
+	if err := universalTranslator.Import(ut.FormatJSON, "./locales"); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

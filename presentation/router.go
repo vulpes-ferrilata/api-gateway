@@ -16,12 +16,14 @@ type Router interface {
 func NewRouter(errorHandlerMiddleware *middlewares.ErrorHandlerMiddleware,
 	authenticationMiddleware *middlewares.AuthenticationMiddleware,
 	authenticationController *controllers.AuthenticationController,
+	userController *controllers.UserController,
 	catanController *controllers.CatanController,
 	websocketServer *neffos.Server) Router {
 	return &router{
 		errorHandlerMiddleware:   errorHandlerMiddleware,
 		authenticationMiddleware: authenticationMiddleware,
 		authenticationController: authenticationController,
+		userController:           userController,
 		catanController:          catanController,
 		websocketServer:          websocketServer,
 	}
@@ -31,6 +33,7 @@ type router struct {
 	errorHandlerMiddleware   *middlewares.ErrorHandlerMiddleware
 	authenticationMiddleware *middlewares.AuthenticationMiddleware
 	authenticationController *controllers.AuthenticationController
+	userController           *controllers.UserController
 	catanController          *controllers.CatanController
 	websocketServer          *neffos.Server
 }
@@ -42,11 +45,16 @@ func (r router) Init(server *iris.Application) {
 	v1 := api.Party("/v1")
 
 	auth := mvc.New(v1.Party("/auth"))
-	auth.HandleError(r.errorHandlerMiddleware.Handle)
+	auth.HandleError(r.errorHandlerMiddleware.Serve())
 	auth.Handle(r.authenticationController)
 
+	user := mvc.New(v1.Party("/user"))
+	user.Router.Use(r.authenticationMiddleware.Serve())
+	user.HandleError(r.errorHandlerMiddleware.Serve())
+	user.Handle(r.userController)
+
 	catan := mvc.New(v1.Party("/catan"))
-	catan.Router.Use(r.authenticationMiddleware.Handle)
-	catan.HandleError(r.errorHandlerMiddleware.Handle)
+	catan.Router.Use(r.authenticationMiddleware.Serve())
+	catan.HandleError(r.errorHandlerMiddleware.Serve())
 	catan.Handle(r.catanController)
 }

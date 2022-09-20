@@ -11,7 +11,7 @@ func ToTokenHttpResponse(tokenGrpcResponse *authentication.TokenResponse) *respo
 	}
 
 	return &responses.Token{
-		AccessToken:  tokenGrpcResponse.AccessToken,
-		RefreshToken: tokenGrpcResponse.RefreshToken,
+		AccessToken:  tokenGrpcResponse.GetAccessToken(),
+		RefreshToken: tokenGrpcResponse.GetRefreshToken(),
 	}
 }

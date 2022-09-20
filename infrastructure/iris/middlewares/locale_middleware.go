@@ -12,14 +12,16 @@ func NewLocaleMiddleware() *LocaleMiddleware {
 
 type LocaleMiddleware struct{}
 
-func (l LocaleMiddleware) Serve(ctx iris.Context) {
-	request := ctx.Request()
-	requestCtx := request.Context()
-	locales := pure.AcceptedLanguages(request)
+func (l LocaleMiddleware) Serve() iris.Handler {
+	return func(ctx iris.Context) {
+		request := ctx.Request()
+		requestCtx := request.Context()
+		locales := pure.AcceptedLanguages(request)
 
-	requestCtx = context_values.WithLocales(requestCtx, locales)
-	request = request.WithContext(requestCtx)
-	ctx.ResetRequest(request)
+		requestCtx = context_values.WithLocales(requestCtx, locales)
+		request = request.WithContext(requestCtx)
+		ctx.ResetRequest(request)
 
-	ctx.Next()
+		ctx.Next()
+	}
 }

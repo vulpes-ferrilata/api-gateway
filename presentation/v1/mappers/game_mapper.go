@@ -11,6 +11,8 @@ func ToGameHttpResponse(gameGrpcResponse *catan.GameResponse) *responses.Game {
 		return nil
 	}
 
+	me := toPlayerHttpResponse(gameGrpcResponse.Me)
+
 	playerHttpResponses, _ := slices.Map(func(playerGrpcResponse *catan.PlayerResponse) (*responses.Player, error) {
 		return toPlayerHttpResponse(playerGrpcResponse), nil
 	}, gameGrpcResponse.GetPlayers())
@@ -35,12 +37,6 @@ func ToGameHttpResponse(gameGrpcResponse *catan.GameResponse) *responses.Game {
 		return toTerrainHttpResponse(terrainGrpcResponse), nil
 	}, gameGrpcResponse.GetTerrains())
 
-	harborHttpResponses, _ := slices.Map(func(harborGrpcResponse *catan.HarborResponse) (*responses.Harbor, error) {
-		return toHarborHttpResponse(harborGrpcResponse), nil
-	}, gameGrpcResponse.GetHarbors())
-
-	robberHttpResponse := toRobberHttpResponse(gameGrpcResponse.GetRobber())
-
 	landHttpResponses, _ := slices.Map(func(landGrpcResponse *catan.LandResponse) (*responses.Land, error) {
 		return toLandHttpResponse(landGrpcResponse), nil
 	}, gameGrpcResponse.GetLands())
@@ -52,16 +48,15 @@ func ToGameHttpResponse(gameGrpcResponse *catan.GameResponse) *responses.Game {
 	return &responses.Game{
 		ID:               gameGrpcResponse.GetID(),
 		Status:           gameGrpcResponse.GetStatus(),
+		Phase:            gameGrpcResponse.GetPhase(),
 		Turn:             int(gameGrpcResponse.GetTurn()),
-		IsRolledDices:    gameGrpcResponse.GetIsRolledDices(),
+		Me:               me,
 		Players:          playerHttpResponses,
 		Dices:            diceHttpResponses,
 		Achievements:     achievementHttpResponses,
 		ResourceCards:    resourceCardHttpResponses,
 		DevelopmentCards: developmentCardHttpResponses,
 		Terrains:         terrainHttpResponses,
-		Harbors:          harborHttpResponses,
-		Robber:           robberHttpResponse,
 		Lands:            landHttpResponses,
 		Paths:            pathHttpResponses,
 	}

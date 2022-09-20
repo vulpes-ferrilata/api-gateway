@@ -7,12 +7,11 @@ require (
 	github.com/go-playground/pkg/v5 v5.6.0
 	github.com/go-playground/pure v4.2.0+incompatible
 	github.com/go-playground/universal-translator v0.18.0
-	github.com/gobwas/ws v1.1.0
 	github.com/kataras/iris/v12 v12.2.0-beta4
 	github.com/kataras/neffos v0.0.20
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.3.2
-	github.com/vulpes-ferrilata/shared v0.0.0-20220825030156-adce73e0dcd4
+	github.com/vulpes-ferrilata/shared v0.0.0-20220905172850-3da839adb756
 	go.mongodb.org/mongo-driver v1.10.1
 	go.uber.org/dig v1.15.0
 	google.golang.org/genproto v0.0.0-20220803205849-8f55acc8769f
@@ -35,6 +34,7 @@ require (
 	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect

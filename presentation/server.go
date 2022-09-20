@@ -20,7 +20,7 @@ func NewServer(localeMiddleware *middlewares.LocaleMiddleware,
 		AllowOriginFunc(cors.AllowAnyOrigin).
 		Handler())
 
-	server.Use(localeMiddleware.Serve)
+	server.Use(localeMiddleware.Serve())
 
 	router.Init(server)
 

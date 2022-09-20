@@ -11,8 +11,6 @@ func toRobberHttpResponse(robberGrpcResponse *catan.RobberResponse) *responses.R
 	}
 
 	return &responses.Robber{
-		ID:        robberGrpcResponse.GetID(),
-		TerrainID: robberGrpcResponse.GetTerrainID(),
-		IsMoving:  robberGrpcResponse.GetIsMoving(),
+		ID: robberGrpcResponse.GetID(),
 	}
 }
