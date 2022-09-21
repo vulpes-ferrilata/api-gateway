@@ -14,6 +14,7 @@ func NewContainer() *dig.Container {
 	//Infrastructure layer
 	container.Provide(NewConfig)
 	container.Provide(NewUniversalTranslator)
+	container.Provide(NewValidator)
 	//--GRPC Clients
 	container.Provide(NewUserClient)
 	container.Provide(NewAuthenticationClient)

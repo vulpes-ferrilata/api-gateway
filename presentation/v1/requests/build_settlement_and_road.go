@@ -1,6 +1,6 @@
 package requests
 
 type BuildSettlementAndRoad struct {
-	LandID string `json:"landID"`
-	PathID string `json:"pathID"`
+	LandID string `json:"landID" validate:"required,objectid"`
+	PathID string `json:"pathID" validate:"required,objectid"`
 }

@@ -28,10 +28,10 @@ func (s statusError) Problem(translator ut.Translator) iris.Problem {
 	switch s.status.Code() {
 	case codes.Unimplemented:
 		problem.Status(iris.StatusNotImplemented)
-	case codes.InvalidArgument:
-		problem.Status(iris.StatusBadRequest)
 	case codes.Unauthenticated:
 		problem.Status(iris.StatusUnauthorized)
+	case codes.InvalidArgument:
+		fallthrough
 	case codes.FailedPrecondition:
 		problem.Status(iris.StatusUnprocessableEntity)
 	case codes.NotFound:

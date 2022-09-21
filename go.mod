@@ -7,6 +7,7 @@ require (
 	github.com/go-playground/pkg/v5 v5.6.0
 	github.com/go-playground/pure v4.2.0+incompatible
 	github.com/go-playground/universal-translator v0.18.0
+	github.com/go-playground/validator/v10 v10.11.1
 	github.com/kataras/iris/v12 v12.2.0-beta4
 	github.com/kataras/neffos v0.0.20
 	github.com/pkg/errors v0.9.1
@@ -52,6 +53,7 @@ require (
 	github.com/kataras/sitemap v0.0.5 // indirect
 	github.com/kataras/tunnel v0.0.4 // indirect
 	github.com/klauspost/compress v1.15.8 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.0 // indirect
 	github.com/mailgun/raymond/v2 v2.0.46 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

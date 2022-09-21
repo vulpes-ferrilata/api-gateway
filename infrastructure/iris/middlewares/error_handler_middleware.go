@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/pkg/errors"
@@ -24,13 +25,18 @@ type ErrorHandlerMiddleware struct {
 
 func (e ErrorHandlerMiddleware) Serve() hero.ErrorHandlerFunc {
 	return func(ctx iris.Context, err error) {
+		locales := context_values.GetLocales(ctx.Request().Context())
+		translator, _ := e.universalTranslator.FindTranslator(locales...)
+
 		if status, ok := status.FromError(errors.Cause(err)); ok {
 			err = app_errors.NewStatusError(status)
 		}
 
+		if validationErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
+			err = app_errors.NewRequestValidationError(validationErrors)
+		}
+
 		if webErr, ok := errors.Cause(err).(app_errors.WebError); ok {
-			locales := context_values.GetLocales(ctx.Request().Context())
-			translator, _ := e.universalTranslator.FindTranslator(locales...)
 			problem := webErr.Problem(translator)
 			ctx.Problem(problem)
 			ctx.StopExecution()
@@ -39,8 +45,15 @@ func (e ErrorHandlerMiddleware) Serve() hero.ErrorHandlerFunc {
 
 		problem := iris.NewProblem()
 		problem.Status(iris.StatusInternalServerError)
-		problem.Detail("something went wrong")
-		problem.Key("stackTraces", fmt.Sprintf("%+v", err))
+
+		detail, err := translator.T("internal-error")
+		if err != nil {
+			detail = "internal-error"
+		}
+		problem.Detail(detail)
+
+		problem.Key("stacktrace", fmt.Sprintf("%+v", err))
+
 		ctx.Problem(problem)
 		ctx.StopExecution()
 	}

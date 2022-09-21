@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"github.com/go-playground/validator/v10"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/cors"
 	"github.com/kataras/iris/v12/middleware/logger"
@@ -8,9 +9,11 @@ import (
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/iris/middlewares"
 )
 
-func NewServer(localeMiddleware *middlewares.LocaleMiddleware,
+func NewServer(validator *validator.Validate, localeMiddleware *middlewares.LocaleMiddleware,
 	router Router) *iris.Application {
 	server := iris.New()
+
+	server.Validator = validator
 
 	server.UseRouter(logger.New())
 	server.UseRouter(recover.New())

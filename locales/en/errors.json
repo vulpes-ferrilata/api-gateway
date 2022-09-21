@@ -6,7 +6,7 @@
     },
     {
         "locale": "en",
-        "key": "validation-error",
+        "key": "request-validation-error",
         "trans": "the request contains invalid parameters, more information can be found in the errors"
     }
 ]
