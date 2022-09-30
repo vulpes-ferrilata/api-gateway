@@ -1,8 +1,6 @@
 package validators
 
 import (
-	"reflect"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,12 +15,5 @@ func RegisterObjectIDValidator(v *validator.Validate) error {
 }
 
 func isObjectID(fl validator.FieldLevel) bool {
-	field := fl.Field()
-
-	switch field.Kind() {
-	case reflect.String:
-		return primitive.IsValidObjectID(field.String())
-	default:
-		return false
-	}
+	return primitive.IsValidObjectID(fl.Field().String())
 }

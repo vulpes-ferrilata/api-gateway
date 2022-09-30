@@ -8,7 +8,8 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
-	"github.com/vulpes-ferrilata/shared/proto/v1/authentication"
+	"github.com/vulpes-ferrilata/authentication-service-proto/pb"
+	"github.com/vulpes-ferrilata/authentication-service-proto/pb/requests"
 )
 
 type TokenExtractor func(iris.Context) (string, error)
@@ -48,7 +49,7 @@ func FromFirst(extractors ...TokenExtractor) TokenExtractor {
 	}
 }
 
-func NewAuthenticationMiddleware(authenticationClient authentication.AuthenticationClient,
+func NewAuthenticationMiddleware(authenticationClient pb.AuthenticationClient,
 	errorHandlerMiddleware *ErrorHandlerMiddleware) *AuthenticationMiddleware {
 	return &AuthenticationMiddleware{
 		authenticationClient: authenticationClient,
@@ -57,7 +58,7 @@ func NewAuthenticationMiddleware(authenticationClient authentication.Authenticat
 }
 
 type AuthenticationMiddleware struct {
-	authenticationClient authentication.AuthenticationClient
+	authenticationClient pb.AuthenticationClient
 	errorHandlerFunc     hero.ErrorHandlerFunc
 }
 
@@ -72,11 +73,11 @@ func (a AuthenticationMiddleware) Serve() iris.Handler {
 			return
 		}
 
-		getClaimByAccessTokenGrpcRequest := &authentication.GetClaimByAccessTokenRequest{
+		getClaimByAccessTokenPbRequest := &requests.GetClaimByAccessToken{
 			AccessToken: accessToken,
 		}
 
-		claimGrpcResponse, err := a.authenticationClient.GetClaimByAccessToken(ctx.Request().Context(), getClaimByAccessTokenGrpcRequest)
+		claimPbResponse, err := a.authenticationClient.GetClaimByAccessToken(ctx.Request().Context(), getClaimByAccessTokenPbRequest)
 		if err != nil {
 			a.errorHandlerFunc(ctx, err)
 			return
@@ -84,7 +85,7 @@ func (a AuthenticationMiddleware) Serve() iris.Handler {
 
 		request := ctx.Request()
 		requestCtx := request.Context()
-		requestCtx = context_values.WithUserID(requestCtx, claimGrpcResponse.UserID)
+		requestCtx = context_values.WithUserID(requestCtx, claimPbResponse.UserID)
 		request = request.WithContext(requestCtx)
 		ctx.ResetRequest(request)
 

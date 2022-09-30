@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"fmt"
+	"strings"
 
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -46,13 +47,13 @@ func (e ErrorHandlerMiddleware) Serve() hero.ErrorHandlerFunc {
 		problem := iris.NewProblem()
 		problem.Status(iris.StatusInternalServerError)
 
-		detail, err := translator.T("internal-error")
-		if err != nil {
-			detail = "internal-error"
+		if detail, err := translator.T("internal-error"); err == nil {
+			problem.Detail(detail)
+		} else {
+			problem.Detail("internal-error")
 		}
-		problem.Detail(detail)
 
-		problem.Key("stacktrace", fmt.Sprintf("%+v", err))
+		problem.Key("stacktrace", strings.Split(fmt.Sprintf("%+v", err), "\n"))
 
 		ctx.Problem(problem)
 		ctx.StopExecution()

@@ -1,10 +1,14 @@
 package infrastructure
 
 import (
+	"github.com/vulpes-ferrilata/api-gateway/infrastructure/grpc/clients"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/grpc/interceptors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/iris/middlewares"
 	"github.com/vulpes-ferrilata/api-gateway/presentation"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/controllers"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/user"
 	"go.uber.org/dig"
 )
 
@@ -16,9 +20,10 @@ func NewContainer() *dig.Container {
 	container.Provide(NewUniversalTranslator)
 	container.Provide(NewValidator)
 	//--GRPC Clients
-	container.Provide(NewUserClient)
-	container.Provide(NewAuthenticationClient)
-	container.Provide(NewCatanClient)
+	container.Provide(clients.NewUserClient)
+	container.Provide(clients.NewAuthenticationClient)
+	container.Provide(clients.NewCatanClient)
+	container.Provide(clients.NewChatClient)
 	//--Grpc interceptors
 	container.Provide(interceptors.NewLocaleInterceptor)
 	//--Iris middlewares
@@ -34,9 +39,10 @@ func NewContainer() *dig.Container {
 	//--Router
 	container.Provide(presentation.NewRouter)
 	//--Controllers
-	container.Provide(controllers.NewAuthenticationController)
-	container.Provide(controllers.NewUserController)
-	container.Provide(controllers.NewCatanController)
+	container.Provide(user.NewUserController)
+	container.Provide(authentication.NewAuthenticationController)
+	container.Provide(catan.NewCatanController)
+	container.Provide(chat.NewChatController)
 
 	return container
 }

@@ -1,8 +1,10 @@
 server:
   address: 0.0.0.0:8080
 user_service:
-  address: 127.0.0.1:7000
-authentication_service:
   address: 127.0.0.1:8000
+authentication_service:
+  address: 127.0.0.1:8001
 catan_service:
-  address: 127.0.0.1:9000
+  address: 127.0.0.1:8002
+chat_service:
+  address: 127.0.0.1:8003

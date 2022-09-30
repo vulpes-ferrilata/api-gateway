@@ -8,15 +8,19 @@ require (
 	github.com/go-playground/pure v4.2.0+incompatible
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.11.1
+	github.com/gocql/gocql v1.2.1
 	github.com/kataras/iris/v12 v12.2.0-beta4
 	github.com/kataras/neffos v0.0.20
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.3.2
-	github.com/vulpes-ferrilata/shared v0.0.0-20220905172850-3da839adb756
+	github.com/vulpes-ferrilata/authentication-service-proto v0.0.0-20220927111235-b2eab51e8756
+	github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20220927111725-6d1c3fba2f06
+	github.com/vulpes-ferrilata/chat-service-proto v0.0.0-20220930092048-8d1c85a124ec
+	github.com/vulpes-ferrilata/user-service-proto v0.0.0-20220927110550-ba6441dde29e
 	go.mongodb.org/mongo-driver v1.10.1
 	go.uber.org/dig v1.15.0
 	google.golang.org/genproto v0.0.0-20220803205849-8f55acc8769f
-	google.golang.org/grpc v1.48.0
+	google.golang.org/grpc v1.49.0
 )
 
 require (
@@ -41,6 +45,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
 	github.com/iris-contrib/jade v1.1.4 // indirect
@@ -88,6 +93,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
+	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

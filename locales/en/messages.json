@@ -1,0 +1,102 @@
+[
+    {
+        "locale": "en",
+        "key": "i-created-game",
+        "trans": "i created game"
+    },
+    {
+        "locale": "en",
+        "key": "i-joined-game",
+        "trans": "i joined game"
+    },
+    {
+        "locale": "en",
+        "key": "i-started-game",
+        "trans": "i started game"
+    },
+    {
+        "locale": "en",
+        "key": "i-built-settlement-and-road",
+        "trans": "i built settlement and road"
+    },
+    {
+        "locale": "en",
+        "key": "i-rolled-dices",
+        "trans": "i rolled dices"
+    },
+    {
+        "locale": "en",
+        "key": "i-moved-robber",
+        "trans": "i moved robber"
+    },
+    {
+        "locale": "en",
+        "key": "i-ended-turn",
+        "trans": "i ended turn"
+    },
+    {
+        "locale": "en",
+        "key": "i-built-settlement",
+        "trans": "i built settlement"
+    },
+    {
+        "locale": "en",
+        "key": "i-built-road",
+        "trans": "i built road"
+    },
+    {
+        "locale": "en",
+        "key": "i-upgraded-city",
+        "trans": "i upgraded city"
+    },
+    {
+        "locale": "en",
+        "key": "i-bought-development-card",
+        "trans": "i bought development card"
+    },
+    {
+        "locale": "en",
+        "key": "i-toggled-resource-cards",
+        "trans": "i toggled resource cards"
+    },
+    {
+        "locale": "en",
+        "key": "i-traded-with-maritime",
+        "trans": "i traded with maritime"
+    },
+    {
+        "locale": "en",
+        "key": "i-sent-a-trade-offer",
+        "trans": "i sent a trade-offer"
+    },
+    {
+        "locale": "en",
+        "key": "i-accepted-trade-offer",
+        "trans": "i accepted trade offer"
+    },
+    {
+        "locale": "en",
+        "key": "i-cancelled-trade-offer",
+        "trans": "i cancelled trade offer"
+    },
+    {
+        "locale": "en",
+        "key": "i-played-knight-card",
+        "trans": "i played knight card"
+    },
+    {
+        "locale": "en",
+        "key": "i-played-road-building-card",
+        "trans": "i played road building card"
+    },
+    {
+        "locale": "en",
+        "key": "i-played-year-of-plenty-card",
+        "trans": "i played year of plenty card"
+    },
+    {
+        "locale": "en",
+        "key": "i-played-monopoly-card",
+        "trans": "i played monopoly card"
+    }
+]
