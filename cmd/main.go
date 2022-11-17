@@ -7,6 +7,15 @@ import (
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/config"
 )
 
+// @title Tumbleweeds Api Gateway
+// @version 1.0
+// @description Backend RestAPI for Tumbleweeds project
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name Trung Hieu Nguyen
+// @contact.email hieunguyen6694@gmail.com
+
+// @BasePath /api/v1
 func main() {
 	container := infrastructure.NewContainer()
 
@@ -14,6 +23,7 @@ func main() {
 		if err := server.Run(
 			iris.Addr(config.Server.Address),
 			iris.WithoutServerError(iris.ErrServerClosed),
+			iris.WithoutPathCorrectionRedirection,
 		); err != nil {
 			return errors.WithStack(err)
 		}

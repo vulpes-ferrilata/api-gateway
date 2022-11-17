@@ -5,13 +5,15 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toAchievementHttpResponse(achievementPbResponse *pb_responses.Achievement) *responses.Achievement {
+type achievementMapper struct{}
+
+func (a achievementMapper) ToHttpResponse(achievementPbResponse *pb_responses.Achievement) (*responses.Achievement, error) {
 	if achievementPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Achievement{
 		ID:   achievementPbResponse.GetID(),
 		Type: achievementPbResponse.GetType(),
-	}
+	}, nil
 }

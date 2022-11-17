@@ -5,9 +5,11 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toHarborHttpResponse(harborPbResponse *pb_responses.Harbor) *responses.Harbor {
+type harborMapper struct{}
+
+func (h harborMapper) ToHttpResponse(harborPbResponse *pb_responses.Harbor) (*responses.Harbor, error) {
 	if harborPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Harbor{
@@ -15,5 +17,5 @@ func toHarborHttpResponse(harborPbResponse *pb_responses.Harbor) *responses.Harb
 		Q:    int(harborPbResponse.GetQ()),
 		R:    int(harborPbResponse.GetR()),
 		Type: harborPbResponse.GetType(),
-	}
+	}, nil
 }

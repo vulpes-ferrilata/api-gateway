@@ -9,6 +9,7 @@ import (
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/saga"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/mappers"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/requests"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/responses"
 	authentication_pb "github.com/vulpes-ferrilata/authentication-service-proto/pb"
 	authentication_pb_requests "github.com/vulpes-ferrilata/authentication-service-proto/pb/requests"
 	user_pb "github.com/vulpes-ferrilata/user-service-proto/pb"
@@ -29,6 +30,18 @@ type AuthenticationController struct {
 	authenticationClient authentication_pb.AuthenticationClient
 }
 
+// @Summary Register user
+// @Description Create new user
+// @Accept  json
+// @Produce  json
+// @Param	displayName    body    requests.Register	true	"Display Name"
+// @Param	email	   body    requests.Register	true	"Email"
+// @Param	password	   body    requests.Register	true	"Password"
+// @Success 201 {object} responses.User	"ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "email is already exists"
+// @Failure 422 {object} iris.Problem "unable to encrypt password"
+// @Router /auth/register [post]
 func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, error) {
 	registerRequest := &requests.Register{}
 
@@ -86,16 +99,27 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 		return nil, errors.WithStack(err)
 	}
 
+	userResponse := &responses.User{
+		ID: userID,
+	}
+
 	return &mvc.Response{
-		Code: iris.StatusCreated,
-		Object: &struct {
-			ID string `json:"id"`
-		}{
-			ID: userID,
-		},
+		Code:   iris.StatusCreated,
+		Object: userResponse,
 	}, nil
 }
 
+// @Summary Login user
+// @Description Get tokens
+// @Accept  json
+// @Produce  json
+// @Param	email	   body    requests.Login	true	"Email"
+// @Param	password	   body    requests.Login	true	"Password"
+// @Success 200 {object} responses.Token	"ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "user credential not found"
+// @Failure 422 {object} iris.Problem "password is invalid"
+// @Router /auth/login [post]
 func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error) {
 	loginRequest := &requests.Login{}
 
@@ -132,6 +156,17 @@ func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error
 	}, nil
 }
 
+// @Summary Refresh token
+// @Description Provide new access token
+// @Accept  json
+// @Produce  json
+// @Param	refreshToken	   body    requests.Refresh	true	"Refresh Token"
+// @Success 200 {object} responses.Token	"ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "claim not found"
+// @Failure 422 {object} iris.Problem "token has been expired"
+// @Failure 422 {object} iris.Problem "token has been revoked"
+// @Router /auth/refresh [post]
 func (a AuthenticationController) PostRefresh(ctx iris.Context) (mvc.Result, error) {
 	refreshRequest := &requests.Refresh{}
 
@@ -156,6 +191,17 @@ func (a AuthenticationController) PostRefresh(ctx iris.Context) (mvc.Result, err
 	}, nil
 }
 
+// @Summary Revoke token
+// @Description Invalidate tokens
+// @Accept  json
+// @Produce  json
+// @Param	refreshToken	   body    requests.Revoke	true	"Refresh Token"
+// @Success 200 {object} responses.Token	"ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "claim not found"
+// @Failure 422 {object} iris.Problem "token has been expired"
+// @Failure 422 {object} iris.Problem "token has been revoked"
+// @Router /auth/revoke [post]
 func (a AuthenticationController) PostRevoke(ctx iris.Context) (mvc.Result, error) {
 	revokeRequest := &requests.Revoke{}
 

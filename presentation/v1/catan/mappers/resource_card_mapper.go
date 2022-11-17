@@ -5,14 +5,16 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toResourceCardHttpResponse(resourceCardPbResponse *pb_responses.ResourceCard) *responses.ResourceCard {
+type resourceCardMapper struct{}
+
+func (r resourceCardMapper) ToHttpResponse(resourceCardPbResponse *pb_responses.ResourceCard) (*responses.ResourceCard, error) {
 	if resourceCardPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.ResourceCard{
-		ID:         resourceCardPbResponse.GetID(),
-		Type:       resourceCardPbResponse.GetType(),
-		IsSelected: resourceCardPbResponse.GetIsSelected(),
-	}
+		ID:       resourceCardPbResponse.GetID(),
+		Type:     resourceCardPbResponse.GetType(),
+		Offering: resourceCardPbResponse.GetOffering(),
+	}, nil
 }

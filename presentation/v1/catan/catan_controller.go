@@ -3,36 +3,30 @@ package catan
 import (
 	"net/http"
 
-	ut "github.com/go-playground/universal-translator"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/neffos"
 	"github.com/pkg/errors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/utils/slices"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/mappers"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/requests"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
 	"github.com/vulpes-ferrilata/catan-service-proto/pb"
 	pb_requests "github.com/vulpes-ferrilata/catan-service-proto/pb/requests"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func NewCatanController(catanClient pb.CatanClient,
-	universalTranslator *ut.UniversalTranslator,
 	websocketServer *neffos.Server) *CatanController {
 	return &CatanController{
-		catanClient:         catanClient,
-		universalTranslator: universalTranslator,
-		websocketServer:     websocketServer,
+		catanClient:     catanClient,
+		websocketServer: websocketServer,
 	}
 }
 
 type CatanController struct {
-	catanClient         pb.CatanClient
-	universalTranslator *ut.UniversalTranslator
-	websocketServer     *neffos.Server
+	catanClient     pb.CatanClient
+	websocketServer *neffos.Server
 }
 
 func (c CatanController) BeforeActivation(b mvc.BeforeActivation) {
@@ -40,6 +34,7 @@ func (c CatanController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, "/{id:string}/start", "Start")
 	b.Handle(http.MethodPost, "/{id:string}/build-settlement-and-road", "BuildSettlementAndRoad")
 	b.Handle(http.MethodPost, "/{id:string}/roll-dices", "RollDices")
+	b.Handle(http.MethodPost, "/{id:string}/discard-resource-cards", "DiscardResourceCards")
 	b.Handle(http.MethodPost, "/{id:string}/move-robber", "MoveRobber")
 	b.Handle(http.MethodPost, "/{id:string}/end-turn", "EndTurn")
 	b.Handle(http.MethodPost, "/{id:string}/build-settlement", "BuildSettlement")
@@ -48,30 +43,42 @@ func (c CatanController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, "/{id:string}/buy-development-card", "BuyDevelopmentCard")
 	b.Handle(http.MethodPost, "/{id:string}/toggle-resource-cards", "ToggleResourceCards")
 	b.Handle(http.MethodPost, "/{id:string}/maritime-trade", "MaritimeTrade")
-	b.Handle(http.MethodPost, "/{id:string}/offer-trading", "OfferTrading")
-	b.Handle(http.MethodPost, "/{id:string}/confirm-trading", "ConfirmTrading")
-	b.Handle(http.MethodPost, "/{id:string}/cancel-trading", "CancelTrading")
+	b.Handle(http.MethodPost, "/{id:string}/send-trade-offer", "SendTradeOffer")
+	b.Handle(http.MethodPost, "/{id:string}/confirm-trade-offer", "ConfirmTradeOffer")
+	b.Handle(http.MethodPost, "/{id:string}/cancel-trade-offer", "CancelTradeOffer")
 	b.Handle(http.MethodPost, "/{id:string}/play-knight-card", "PlayKnightCard")
 	b.Handle(http.MethodPost, "/{id:string}/play-road-building-card", "PlayRoadBuildingCard")
 	b.Handle(http.MethodPost, "/{id:string}/play-year-of-plenty-card", "PlayYearOfPlentyCard")
 	b.Handle(http.MethodPost, "/{id:string}/play-monopoly-card", "PlayMonopolyCard")
 }
 
+// @Summary Get game pagination
+// @Description Find games by limit by offset
+// @Accept  json
+// @Produce  json
+// @Param	limit	   query    int    false	"Limit"
+// @Param	offset	   query    int	   false	"Offset"
+// @Success 200 {object} responses.GamePagination "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Router /catan/games [get]
 func (c CatanController) Get(ctx iris.Context) (mvc.Result, error) {
-	userID := context_values.GetUserID(ctx)
+	limit := ctx.URLParamIntDefault("limit", 0)
+	offset := ctx.URLParamIntDefault("offset", 0)
 
-	findGamesByUserIDPbRequest := &pb_requests.FindGamesByUserID{
-		UserID: userID,
+	findGamePaginationByLimitByOffsetPbRequest := &pb_requests.FindGamePaginationByLimitByOffset{
+		Limit:  int32(limit),
+		Offset: int32(offset),
 	}
 
-	gameListPbResponse, err := c.catanClient.FindGamesByUserID(ctx, findGamesByUserIDPbRequest)
+	gamePaginationPbResponse, err := c.catanClient.FindGamePaginationByLimitByOffset(ctx, findGamePaginationByLimitByOffsetPbRequest)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	gameResponses, _ := slices.Map(func(gamePbResponse *pb_responses.Game) (*responses.Game, error) {
-		return mappers.ToGameHttpResponse(gamePbResponse), nil
-	}, gameListPbResponse.Games)
+	gameResponses, err := mappers.GamePaginationMapper.ToHttpResponse(gamePaginationPbResponse)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	return &mvc.Response{
 		Code:   iris.StatusOK,
@@ -79,27 +86,46 @@ func (c CatanController) Get(ctx iris.Context) (mvc.Result, error) {
 	}, nil
 }
 
+// @Summary Get game
+// @Description Get game by id
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {object} responses.GameDetail "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "game not found"
+// @Router /catan/games/{id} [get]
 func (c CatanController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	getGameByIDByUserIDPbRequest := &pb_requests.GetGameByIDByUserID{
+	getGameDetailByIDByUserIDPbRequest := &pb_requests.GetGameDetailByIDByUserID{
 		GameID: id,
 		UserID: userID,
 	}
 
-	gamePbResponse, err := c.catanClient.GetGameByIDByUserID(ctx, getGameByIDByUserIDPbRequest)
+	gameDetailPbResponse, err := c.catanClient.GetGameDetailByIDByUserID(ctx, getGameDetailByIDByUserIDPbRequest)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	gameResponse := mappers.ToGameHttpResponse(gamePbResponse)
+	gameDetailResponse, err := mappers.GameDetailMapper.ToHttpResponse(gameDetailPbResponse)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	return &mvc.Response{
 		Code:   iris.StatusOK,
-		Object: gameResponse,
+		Object: gameDetailResponse,
 	}, nil
 }
 
+// @Summary Create game
+// @Description Create new game
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} responses.GameDetail "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Router /catan/games/ [post]
 func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -114,22 +140,14 @@ func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-created-game")
-	if err != nil {
-		translatedDetail = "i-created-game"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
-		Event:     "game:created",
-		Body:      neffos.Marshal(notification),
+		Namespace: "Catan",
+		Event:     "GameCreated",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -142,6 +160,17 @@ func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 	}, nil
 }
 
+// @Summary Join game
+// @Description Join game at waiting state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "game has full players"
+// @Failure 422 {object} iris.Problem "game already started"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Router /catan/games/{id}/join [post]
 func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -154,23 +183,15 @@ func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-joined-game")
-	if err != nil {
-		translatedDetail = "i-joined-game"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "GameJoined",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -178,6 +199,18 @@ func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 	}, nil
 }
 
+// @Summary Start game
+// @Description Start game at waiting state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "game must have at least 2 players"
+// @Failure 422 {object} iris.Problem "game already started"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Router /catan/games/{id}/start [post]
 func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -190,23 +223,15 @@ func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) 
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-started-game")
-	if err != nil {
-		translatedDetail = "i-started-game"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "GameStarted",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -214,6 +239,23 @@ func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) 
 	}, nil
 }
 
+// @Summary Build settlement and road
+// @Description Build settlement and road at setup phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	landID	   body    requests.BuildSettlementAndRoad	true	"Land ID"
+// @Param	pathID	   body    requests.BuildSettlementAndRoad	true	"Path ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "land not found"
+// @Failure 404 {object} iris.Problem "path not found"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "nearby lands must be vacant"
+// @Failure 422 {object} iris.Problem "selected land and path must be adjacent"
+// @Failure 422 {object} iris.Problem "you run out of settlements"
+// @Failure 422 {object} iris.Problem "you run out of roads"
+// @Router /catan/games/{id}/build-settlement-and-road [post]
 func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	buildSettlementAndRoadRequest := &requests.BuildSettlementAndRoad{}
@@ -233,23 +275,15 @@ func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mv
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-built-settlement-and-road")
-	if err != nil {
-		translatedDetail = "i-built-settlement-and-road"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "SettlementAndRoadBuilt",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -257,6 +291,21 @@ func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mv
 	}, nil
 }
 
+// @Summary Roll dices
+// @Description Roll dices at resource production phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource consumption phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Router /catan/games/{id}/roll-dices [post]
 func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -269,23 +318,15 @@ func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, err
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-rolled-dices")
-	if err != nil {
-		translatedDetail = "i-rolled-dices"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "DicesRolled",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -293,6 +334,81 @@ func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, err
 	}, nil
 }
 
+// @Summary Discard resource cards
+// @Description Discard resource cards by half when handling more than 7 resource cards at resource discard phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	resourceCardIDs	   body    requests.BuildSettlementAndRoad	true	"List of Resource Card ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource consumption phase"
+// @Failure 422 {object} iris.Problem "you already discarded resource cards"
+// @Failure 422 {object} iris.Problem "you have no need to discard resource cards"
+// @Failure 422 {object} iris.Problem "selected resource cards must be equals to half of your currently resource cards"
+// @Router /catan/games/{id}/discard-resource-cards [post]
+func (c CatanController) DiscardResourceCards(ctx iris.Context, id string) (mvc.Result, error) {
+	userID := context_values.GetUserID(ctx)
+	discardResourceCardsRequest := &requests.DiscardResourceCards{}
+
+	if err := ctx.ReadJSON(discardResourceCardsRequest); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	discardResourceCardsPbRequest := &pb_requests.DiscardResourceCards{
+		GameID:          id,
+		UserID:          userID,
+		ResourceCardIDs: discardResourceCardsRequest.ResourceCardIDs,
+	}
+
+	if _, err := c.catanClient.DiscardResourceCards(ctx, discardResourceCardsPbRequest); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	messageResponse := &responses.Message{
+		UserID: userID,
+	}
+
+	c.websocketServer.Broadcast(nil, neffos.Message{
+		Namespace: "Catan",
+		Room:      id,
+		Event:     "ResourceCardsDiscarded",
+		Body:      neffos.Marshal(messageResponse),
+	})
+
+	return &mvc.Response{
+		Code: iris.StatusOK,
+	}, nil
+}
+
+// @Summary Move robber
+// @Description Move robber and steal resource card if robber placed on terrain which has enemy construction nearby at robbing phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	terrainID	   body    requests.MoveRobber	true	"Terrain ID"
+// @Param	playerID	   body    requests.MoveRobber	false	"Player ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "terrain not found"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource consumption phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
+// @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
+// @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
+// @Router /catan/games/{id}/move-robber [post]
 func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	moveRobberRequest := &requests.MoveRobber{}
@@ -312,23 +428,15 @@ func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, er
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-moved-robber")
-	if err != nil {
-		translatedDetail = "i-moved-robber"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "RobberMoved",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -336,6 +444,22 @@ func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, er
 	}, nil
 }
 
+// @Summary End turn
+// @Description End current turn at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Router /catan/games/{id}/end-turn [post]
 func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -348,23 +472,15 @@ func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-ended-turn")
-	if err != nil {
-		translatedDetail = "i-ended-turn"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "TurnEnded",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -372,6 +488,27 @@ func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error
 	}, nil
 }
 
+// @Summary Build settlement
+// @Description build settlement by using resource cards at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	landID	   body    requests.BuildSettlement	true	"Land ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "land not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "you have insufficient resource cards"
+// @Failure 422 {object} iris.Problem "nearby lands must be vacant"
+// @Failure 422 {object} iris.Problem "selected land must be adjacent to your road"
+// @Failure 422 {object} iris.Problem "you run out of settlements"
+// @Router /catan/games/{id}/build-settlement [post]
 func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	buildSettlementRequest := &requests.BuildSettlement{}
@@ -390,23 +527,15 @@ func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Resul
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-built-settlement")
-	if err != nil {
-		translatedDetail = "i-built-settlement"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "SettlementBuilt",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -414,6 +543,27 @@ func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Resul
 	}, nil
 }
 
+// @Summary Build road
+// @Description build road by using resource cards at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	pathID	   body    requests.BuildRoad	true	"Path ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "path not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "you have insufficient resource cards"
+// @Failure 422 {object} iris.Problem "selected path must be adjacent to your construction or road"
+// @Failure 422 {object} iris.Problem "selected path pass through construction of other player"
+// @Failure 422 {object} iris.Problem "you run out of roads"
+// @Router /catan/games/{id}/build-road [post]
 func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	buildRoadRequest := &requests.BuildRoad{}
@@ -432,23 +582,15 @@ func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, err
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-built-road")
-	if err != nil {
-		translatedDetail = "i-built-road"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "RoadBuilt",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -456,6 +598,27 @@ func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, err
 	}, nil
 }
 
+// @Summary Upgrade city
+// @Description upgrade your settlement to city by using resource cards at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	constructionID	   body    requests.UpgradeCity	true	"Construction ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "construction not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "you have insufficient resource cards"
+// @Failure 422 {object} iris.Problem "selected construction already upgraded"
+// @Failure 422 {object} iris.Problem "selected construction does not belong to any land"
+// @Failure 422 {object} iris.Problem "you run out of cities"
+// @Router /catan/games/{id}/upgrade-city [post]
 func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	upgradeCityRequest := &requests.UpgradeCity{}
@@ -474,23 +637,15 @@ func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, e
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-upgraded-city")
-	if err != nil {
-		translatedDetail = "i-upgraded-city"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "CityUpgraded",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -498,6 +653,22 @@ func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, e
 	}, nil
 }
 
+// @Summary Buy development
+// @Description Buy development by using resource cards at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "game run out of development cards"
+// @Router /catan/games/{id}/buy-development-card [post]
 func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -510,23 +681,15 @@ func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Re
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-bought-development-card")
-	if err != nil {
-		translatedDetail = "i-bought-development-card"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "DevelopmentCardBought",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -534,6 +697,23 @@ func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Re
 	}, nil
 }
 
+// @Summary Toggle resource cards
+// @Description Turn selected resource card into offer/unoffer at resource consumption phase, the offering resource card will be showed up to other players and it will be used to trade with maritime or other players
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	resourceCardIDs	   body    requests.ToggleResourceCards	true	"List of Resource Card ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 404 {object} iris.Problem "resource card not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Router /catan/games/{id}/toggle-resource-cards [post]
 func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	toggleResourceCardsRequest := &requests.ToggleResourceCards{}
@@ -552,23 +732,15 @@ func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.R
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-toggled-resource-cards")
-	if err != nil {
-		translatedDetail = "i-toggled-resource-cards"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "ResourceCardsToggled",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -576,6 +748,23 @@ func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.R
 	}, nil
 }
 
+// @Summary Maritime trade
+// @Description Exchange your offering resource cards with selected one on the table at resource consumption phase, all of the offering resource cards will be exchange with the lowest ratio in case of owning harbors
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	resourceCardType	   body    requests.MaritimeTrade	true	"Resource Card Type"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "game has insufficient resource cards"
+// @Router /catan/games/{id}/maritime-trade [post]
 func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	maritimeTradeRequest := &requests.MaritimeTrade{}
@@ -594,23 +783,15 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-traded-with-maritime")
-	if err != nil {
-		translatedDetail = "i-traded-with-maritime"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "MaritimeTraded",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -618,41 +799,53 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 	}, nil
 }
 
-func (c CatanController) OfferTrading(ctx iris.Context, id string) (mvc.Result, error) {
+// @Summary Send trade offer
+// @Description Offer other player to exchange their offering resource cards at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	playerID	   body    requests.SendTradeOffer	true	"Player ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "you already offered this player"
+// @Failure 422 {object} iris.Problem "you must offer at least one resource card"
+// @Failure 422 {object} iris.Problem "selected player must offer at least one resource card"
+// @Router /catan/games/{id}/send-trade-offer [post]
+func (c CatanController) SendTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	offerTradingRequest := &requests.OfferTrading{}
+	sendTradeOfferRequest := &requests.SendTradeOffer{}
 
-	if err := ctx.ReadJSON(offerTradingRequest); err != nil {
+	if err := ctx.ReadJSON(sendTradeOfferRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	offerTradingPbRequest := &pb_requests.OfferTrading{
+	sendTradeOfferPbRequest := &pb_requests.SendTradeOffer{
 		GameID:   id,
 		UserID:   userID,
-		PlayerID: offerTradingRequest.PlayerID,
+		PlayerID: sendTradeOfferRequest.PlayerID,
 	}
 
-	if _, err := c.catanClient.OfferTrading(ctx, offerTradingPbRequest); err != nil {
+	if _, err := c.catanClient.SendTradeOffer(ctx, sendTradeOfferPbRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-sent-a-trade-offer")
-	if err != nil {
-		translatedDetail = "i-sent-a-trade-offer"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "TradeOfferSent",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -660,35 +853,45 @@ func (c CatanController) OfferTrading(ctx iris.Context, id string) (mvc.Result, 
 	}, nil
 }
 
-func (c CatanController) ConfirmTrading(ctx iris.Context, id string) (mvc.Result, error) {
+// @Summary Confirm trade offer
+// @Description Confirm exchanging offering resource cards with active player at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you have not received any offer"
+// @Failure 422 {object} iris.Problem "you must offer at least one resource card"
+// @Failure 422 {object} iris.Problem "active player must offer at least one resource card"
+// @Router /catan/games/{id}/confirm-trade-offer [post]
+func (c CatanController) ConfirmTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	confirmTradingPbRequest := &pb_requests.ConfirmTrading{
+	confirmTradeOfferPbRequest := &pb_requests.ConfirmTradeOffer{
 		GameID: id,
 		UserID: userID,
 	}
 
-	if _, err := c.catanClient.ConfirmTrading(ctx, confirmTradingPbRequest); err != nil {
+	if _, err := c.catanClient.ConfirmTradeOffer(ctx, confirmTradeOfferPbRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-accepted-trade-offer")
-	if err != nil {
-		translatedDetail = "i-accepted-trade-offer"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "TradeOfferConfirmed",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -696,35 +899,43 @@ func (c CatanController) ConfirmTrading(ctx iris.Context, id string) (mvc.Result
 	}, nil
 }
 
-func (c CatanController) CancelTrading(ctx iris.Context, id string) (mvc.Result, error) {
+// @Summary Cancel trade offer
+// @Description Cancel trade offer of active player at resource consumption phase
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in setup phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource production phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in resource discard phase"
+// @Failure 422 {object} iris.Problem "you are unable to perform this action in robbing phase"
+// @Failure 422 {object} iris.Problem "you have not received any offer"
+// @Router /catan/games/{id}/cancel-trade-offer [post]
+func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	cancelTradingPbRequest := &pb_requests.CancelTrading{
+	cancelTradeOfferPbRequest := &pb_requests.CancelTradeOffer{
 		GameID: id,
 		UserID: userID,
 	}
 
-	if _, err := c.catanClient.CancelTrading(ctx, cancelTradingPbRequest); err != nil {
+	if _, err := c.catanClient.CancelTradeOffer(ctx, cancelTradeOfferPbRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-cancelled-trade-offer")
-	if err != nil {
-		translatedDetail = "i-cancelled-trade-offer"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "TradeOfferCancelled",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -732,6 +943,24 @@ func (c CatanController) CancelTrading(ctx iris.Context, id string) (mvc.Result,
 	}, nil
 }
 
+// @Summary Play knight card
+// @Description Play knight development card from your stack at any phase of started state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	terrainID	   body    requests.PlayKnightCard	true	"Terrain ID"
+// @Param	playerID	   body    requests.PlayKnightCard	false	"Player ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "development card not found"
+// @Failure 404 {object} iris.Problem "player not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
+// @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
+// @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
+// @Router /catan/games/{id}/play-knight-card [post]
 func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	playKnightCardRequest := &requests.PlayKnightCard{}
@@ -751,23 +980,15 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-played-knight-card")
-	if err != nil {
-		translatedDetail = "i-played-knight-card"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "KnightCardPlayed",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -775,6 +996,23 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 	}, nil
 }
 
+// @Summary Play road building card
+// @Description Play road building development card from your stack at any phase of started state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	pathIDs	   body    requests.PlayRoadBuildingCard	true	"List of Path ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "development card not found"
+// @Failure 404 {object} iris.Problem "path not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected path must be adjacent to your construction or road"
+// @Failure 422 {object} iris.Problem "selected path pass through construction of other player"
+// @Failure 422 {object} iris.Problem "you run out of roads"
+// @Router /catan/games/{id}/play-road-building-card [post]
 func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	playRoadBuildingCardRequest := &requests.PlayRoadBuildingCard{}
@@ -793,23 +1031,15 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-played-road-building-card")
-	if err != nil {
-		translatedDetail = "i-played-road-building-card"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "RoadBuildingCardPlayed",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -817,6 +1047,22 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 	}, nil
 }
 
+// @Summary Play year of plenty card
+// @Description Play year of plenty development card from your stack at any phase of started state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	resourceCardTypes	   body    requests.PlayYearOfPlentyCard	true	"List of Resource Card Type"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "development card not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected path must be adjacent to your construction or road"
+// @Failure 422 {object} iris.Problem "selected path pass through construction of other player"
+// @Failure 422 {object} iris.Problem "game has insufficient resource cards"
+// @Router /catan/games/{id}/play-year-of-plenty-card [post]
 func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	playYearOfPlentyCardRequest := &requests.PlayYearOfPlentyCard{}
@@ -835,23 +1081,15 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-played-year-of-plenty-card")
-	if err != nil {
-		translatedDetail = "i-played-year-of-plenty-card"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "YearOfPlentyCardPlayed",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{
@@ -859,6 +1097,22 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 	}, nil
 }
 
+// @Summary Play monopoly card
+// @Description Play monopoly development card from your stack at any phase of started state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	resourceCardType	   body    requests.PlayMonopolyCard	true	"Resource Card Type"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "development card not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
+// @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
+// @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
+// @Router /catan/games/{id}/play-monopoly-card [post]
 func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 	playMonopolyCardRequest := &requests.PlayMonopolyCard{}
@@ -877,23 +1131,15 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 		return nil, errors.WithStack(err)
 	}
 
-	locales := context_values.GetLocales(ctx)
-	translator, _ := c.universalTranslator.FindTranslator(locales...)
-	translatedDetail, err := translator.T("i-played-monopoly-card")
-	if err != nil {
-		translatedDetail = "i-played-monopoly-card"
-	}
-
-	notification := &responses.Notification{
+	messageResponse := &responses.Message{
 		UserID: userID,
-		Detail: translatedDetail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "catan",
+		Namespace: "Catan",
 		Room:      id,
-		Event:     "game:updated",
-		Body:      neffos.Marshal(notification),
+		Event:     "MonopolyCardPlayed",
+		Body:      neffos.Marshal(messageResponse),
 	})
 
 	return &mvc.Response{

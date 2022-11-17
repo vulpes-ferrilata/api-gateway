@@ -1,0 +1,1382 @@
+basePath: /api/v1
+definitions:
+  iris.Problem:
+    additionalProperties: true
+    type: object
+  requests.BuildRoad:
+    properties:
+      pathID:
+        type: string
+    required:
+    - pathID
+    type: object
+  requests.BuildSettlement:
+    properties:
+      landID:
+        type: string
+    required:
+    - landID
+    type: object
+  requests.BuildSettlementAndRoad:
+    properties:
+      landID:
+        type: string
+      pathID:
+        type: string
+    required:
+    - landID
+    - pathID
+    type: object
+  requests.Login:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  requests.MaritimeTrade:
+    properties:
+      resourceCardType:
+        type: string
+    type: object
+  requests.MoveRobber:
+    properties:
+      playerID:
+        type: string
+      terrainID:
+        type: string
+    required:
+    - terrainID
+    type: object
+  requests.PlayKnightCard:
+    properties:
+      playerID:
+        type: string
+      terrainID:
+        type: string
+    required:
+    - terrainID
+    type: object
+  requests.PlayMonopolyCard:
+    properties:
+      resourceCardType:
+        type: string
+    type: object
+  requests.PlayRoadBuildingCard:
+    properties:
+      pathIDs:
+        items:
+          type: string
+        maxItems: 2
+        minItems: 1
+        type: array
+        uniqueItems: true
+    required:
+    - pathIDs
+    type: object
+  requests.PlayYearOfPlentyCard:
+    properties:
+      resourceCardTypes:
+        items:
+          type: string
+        maxItems: 2
+        minItems: 1
+        type: array
+    required:
+    - resourceCardTypes
+    type: object
+  requests.Refresh:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  requests.Register:
+    properties:
+      displayName:
+        maxLength: 20
+        minLength: 1
+        type: string
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - displayName
+    - email
+    - password
+    type: object
+  requests.Revoke:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  requests.SendTradeOffer:
+    properties:
+      playerID:
+        type: string
+    required:
+    - playerID
+    type: object
+  requests.ToggleResourceCards:
+    properties:
+      resourceCardIDs:
+        items:
+          type: string
+        type: array
+        uniqueItems: true
+    required:
+    - resourceCardIDs
+    type: object
+  requests.UpgradeCity:
+    properties:
+      constructionID:
+        type: string
+    type: object
+  responses.Achievement:
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+    type: object
+  responses.Construction:
+    properties:
+      id:
+        type: string
+      land:
+        $ref: '#/definitions/responses.Land'
+      type:
+        type: string
+    type: object
+  responses.DevelopmentCard:
+    properties:
+      id:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  responses.Dice:
+    properties:
+      id:
+        type: string
+      number:
+        type: integer
+    type: object
+  responses.Game:
+    properties:
+      id:
+        type: string
+      playerQuantity:
+        type: integer
+      status:
+        type: string
+    type: object
+  responses.GameDetail:
+    properties:
+      achievements:
+        items:
+          $ref: '#/definitions/responses.Achievement'
+        type: array
+      activePlayer:
+        $ref: '#/definitions/responses.Player'
+      developmentCards:
+        items:
+          $ref: '#/definitions/responses.DevelopmentCard'
+        type: array
+      dices:
+        items:
+          $ref: '#/definitions/responses.Dice'
+        type: array
+      id:
+        type: string
+      lands:
+        items:
+          $ref: '#/definitions/responses.Land'
+        type: array
+      paths:
+        items:
+          $ref: '#/definitions/responses.Path'
+        type: array
+      phase:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/responses.Player'
+        type: array
+      resourceCards:
+        items:
+          $ref: '#/definitions/responses.ResourceCard'
+        type: array
+      status:
+        type: string
+      terrains:
+        items:
+          $ref: '#/definitions/responses.Terrain'
+        type: array
+      turn:
+        type: integer
+    type: object
+  responses.GamePagination:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.Game'
+        type: array
+      total:
+        type: integer
+    type: object
+  responses.Harbor:
+    properties:
+      id:
+        type: string
+      q:
+        type: integer
+      r:
+        type: integer
+      type:
+        type: string
+    type: object
+  responses.Land:
+    properties:
+      id:
+        type: string
+      location:
+        type: string
+      q:
+        type: integer
+      r:
+        type: integer
+    type: object
+  responses.Message:
+    properties:
+      Detail:
+        type: string
+      ID:
+        type: string
+      RoomID:
+        type: string
+      UserID:
+        type: string
+    type: object
+  responses.Path:
+    properties:
+      id:
+        type: string
+      location:
+        type: string
+      q:
+        type: integer
+      r:
+        type: integer
+    type: object
+  responses.Player:
+    properties:
+      achievements:
+        items:
+          $ref: '#/definitions/responses.Achievement'
+        type: array
+      color:
+        type: string
+      constructions:
+        items:
+          $ref: '#/definitions/responses.Construction'
+        type: array
+      developmentCards:
+        items:
+          $ref: '#/definitions/responses.DevelopmentCard'
+        type: array
+      discardedResources:
+        type: boolean
+      id:
+        type: string
+      receivedOffer:
+        type: boolean
+      resourceCards:
+        items:
+          $ref: '#/definitions/responses.ResourceCard'
+        type: array
+      roads:
+        items:
+          $ref: '#/definitions/responses.Road'
+        type: array
+      score:
+        type: integer
+      turnOrder:
+        type: integer
+      userID:
+        type: string
+    type: object
+  responses.ResourceCard:
+    properties:
+      id:
+        type: string
+      offering:
+        type: boolean
+      type:
+        type: string
+    type: object
+  responses.Road:
+    properties:
+      id:
+        type: string
+      path:
+        $ref: '#/definitions/responses.Path'
+    type: object
+  responses.Robber:
+    properties:
+      id:
+        type: string
+    type: object
+  responses.Terrain:
+    properties:
+      harbor:
+        $ref: '#/definitions/responses.Harbor'
+      id:
+        type: string
+      number:
+        type: integer
+      q:
+        type: integer
+      r:
+        type: integer
+      robber:
+        $ref: '#/definitions/responses.Robber'
+      type:
+        type: string
+    type: object
+  responses.Token:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  responses.User:
+    properties:
+      displayName:
+        type: string
+      id:
+        type: string
+    type: object
+info:
+  contact:
+    email: hieunguyen6694@gmail.com
+    name: Trung Hieu Nguyen
+  description: Backend RestAPI for Tumbleweeds project
+  termsOfService: http://swagger.io/terms/
+  title: Tumbleweeds Api Gateway
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Get tokens
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Login'
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.Token'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: user credential not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: password is invalid
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Login user
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Provide new access token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Refresh'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.Token'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: claim not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: token has been revoked
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Refresh token
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create new user
+      parameters:
+      - description: Display Name
+        in: body
+        name: displayName
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Register'
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Register'
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Register'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.User'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: unable to encrypt password
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Register user
+  /auth/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate tokens
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Revoke'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.Token'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: claim not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: token has been revoked
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Revoke token
+  /catan/games:
+    get:
+      consumes:
+      - application/json
+      description: Find games by limit by offset
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.GamePagination'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Get game pagination
+  /catan/games/:
+    post:
+      consumes:
+      - application/json
+      description: Create new game
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.GameDetail'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Create game
+  /catan/games/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get game by id
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.GameDetail'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: game not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Get game
+  /catan/games/{id}/build-road:
+    post:
+      consumes:
+      - application/json
+      description: build road by using resource cards at resource consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Path ID
+        in: body
+        name: pathID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.BuildRoad'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: path not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you run out of roads
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Build road
+  /catan/games/{id}/build-settlement:
+    post:
+      consumes:
+      - application/json
+      description: build settlement by using resource cards at resource consumption
+        phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Land ID
+        in: body
+        name: landID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.BuildSettlement'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: land not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you run out of settlements
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Build settlement
+  /catan/games/{id}/build-settlement-and-road:
+    post:
+      consumes:
+      - application/json
+      description: Build settlement and road at setup phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Land ID
+        in: body
+        name: landID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.BuildSettlementAndRoad'
+      - description: Path ID
+        in: body
+        name: pathID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.BuildSettlementAndRoad'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: path not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you run out of roads
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Build settlement and road
+  /catan/games/{id}/buy-development-card:
+    post:
+      consumes:
+      - application/json
+      description: Buy development by using resource cards at resource consumption
+        phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: game run out of development cards
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Buy development
+  /catan/games/{id}/cancel-trade-offer:
+    post:
+      consumes:
+      - application/json
+      description: Cancel trade offer of active player at resource consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you have not received any offer
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Cancel trade offer
+  /catan/games/{id}/confirm-trade-offer:
+    post:
+      consumes:
+      - application/json
+      description: Confirm exchanging offering resource cards with active player at
+        resource consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: active player must offer at least one resource card
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Confirm trade offer
+  /catan/games/{id}/discard-resource-cards:
+    post:
+      consumes:
+      - application/json
+      description: Discard resource cards by half when handling more than 7 resource
+        cards at resource discard phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of Resource Card ID
+        in: body
+        name: resourceCardIDs
+        required: true
+        schema:
+          $ref: '#/definitions/requests.BuildSettlementAndRoad'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected resource cards must be equals to half of your currently
+            resource cards
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Discard resource cards
+  /catan/games/{id}/end-turn:
+    post:
+      consumes:
+      - application/json
+      description: End current turn at resource consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you are not in turn
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: End turn
+  /catan/games/{id}/join:
+    post:
+      consumes:
+      - application/json
+      description: Join game at waiting state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: game already finished
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Join game
+  /catan/games/{id}/maritime-trade:
+    post:
+      consumes:
+      - application/json
+      description: Exchange your offering resource cards with selected one on the
+        table at resource consumption phase, all of the offering resource cards will
+        be exchange with the lowest ratio in case of owning harbors
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Resource Card Type
+        in: body
+        name: resourceCardType
+        required: true
+        schema:
+          $ref: '#/definitions/requests.MaritimeTrade'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: game has insufficient resource cards
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Maritime trade
+  /catan/games/{id}/move-robber:
+    post:
+      consumes:
+      - application/json
+      description: Move robber and steal resource card if robber placed on terrain
+        which has enemy construction nearby at robbing phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Terrain ID
+        in: body
+        name: terrainID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.MoveRobber'
+      - description: Player ID
+        in: body
+        name: playerID
+        schema:
+          $ref: '#/definitions/requests.MoveRobber'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected player must have construction next to robber
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Move robber
+  /catan/games/{id}/play-knight-card:
+    post:
+      consumes:
+      - application/json
+      description: Play knight development card from your stack at any phase of started
+        state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Terrain ID
+        in: body
+        name: terrainID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayKnightCard'
+      - description: Player ID
+        in: body
+        name: playerID
+        schema:
+          $ref: '#/definitions/requests.PlayKnightCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected player must have construction next to robber
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Play knight card
+  /catan/games/{id}/play-monopoly-card:
+    post:
+      consumes:
+      - application/json
+      description: Play monopoly development card from your stack at any phase of
+        started state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Resource Card Type
+        in: body
+        name: resourceCardType
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayMonopolyCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: development card not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected player must have construction next to robber
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Play monopoly card
+  /catan/games/{id}/play-road-building-card:
+    post:
+      consumes:
+      - application/json
+      description: Play road building development card from your stack at any phase
+        of started state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of Path ID
+        in: body
+        name: pathIDs
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayRoadBuildingCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: path not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you run out of roads
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Play road building card
+  /catan/games/{id}/play-year-of-plenty-card:
+    post:
+      consumes:
+      - application/json
+      description: Play year of plenty development card from your stack at any phase
+        of started state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of Resource Card Type
+        in: body
+        name: resourceCardTypes
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayYearOfPlentyCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: development card not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: game has insufficient resource cards
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Play year of plenty card
+  /catan/games/{id}/roll-dices:
+    post:
+      consumes:
+      - application/json
+      description: Roll dices at resource production phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you are not in turn
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Roll dices
+  /catan/games/{id}/send-trade-offer:
+    post:
+      consumes:
+      - application/json
+      description: Offer other player to exchange their offering resource cards at
+        resource consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Player ID
+        in: body
+        name: playerID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.SendTradeOffer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: player not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected player must offer at least one resource card
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Send trade offer
+  /catan/games/{id}/start:
+    post:
+      consumes:
+      - application/json
+      description: Start game at waiting state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: game already finished
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Start game
+  /catan/games/{id}/toggle-resource-cards:
+    post:
+      consumes:
+      - application/json
+      description: Turn selected resource card into offer/unoffer at resource consumption
+        phase, the offering resource card will be showed up to other players and it
+        will be used to trade with maritime or other players
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of Resource Card ID
+        in: body
+        name: resourceCardIDs
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ToggleResourceCards'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: resource card not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you are unable to perform this action in robbing phase
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Toggle resource cards
+  /catan/games/{id}/upgrade-city:
+    post:
+      consumes:
+      - application/json
+      description: upgrade your settlement to city by using resource cards at resource
+        consumption phase
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Construction ID
+        in: body
+        name: constructionID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpgradeCity'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: construction not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: you run out of cities
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Upgrade city
+  /chat/messages:
+    get:
+      consumes:
+      - application/json
+      description: Find messages by room id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            items:
+              $ref: '#/definitions/responses.Message'
+            type: array
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Find messages
+    post:
+      consumes:
+      - application/json
+      description: Create new message
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.Message'
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Create message
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.User'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: ID must be a valid ObjectID
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Get user
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Get user by user credential
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/responses.User'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Get authorized user
+swagger: "2.0"

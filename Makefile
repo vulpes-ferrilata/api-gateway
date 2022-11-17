@@ -1,4 +1,4 @@
-generate-swag:
+generate-swagger:
 	swag init --pd -d cmd
 
-.PHONY: generate-swag
+.PHONY: generate-swagger

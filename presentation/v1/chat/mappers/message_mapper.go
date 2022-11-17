@@ -5,15 +5,18 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/chat-service-proto/pb/responses"
 )
 
-func ToMessageHttpResponse(messagePbResponse *pb_responses.Message) *responses.Message {
+var MessageMapper messageMapper = messageMapper{}
+
+type messageMapper struct{}
+
+func (m messageMapper) ToHttpResponse(messagePbResponse *pb_responses.Message) (*responses.Message, error) {
 	if messagePbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Message{
 		ID:     messagePbResponse.GetID(),
-		RoomID: messagePbResponse.GetRoomID(),
 		UserID: messagePbResponse.GetUserID(),
 		Detail: messagePbResponse.GetDetail(),
-	}
+	}, nil
 }

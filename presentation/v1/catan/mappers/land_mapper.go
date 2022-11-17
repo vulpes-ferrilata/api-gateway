@@ -5,9 +5,11 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toLandHttpResponse(landPbResponse *pb_responses.Land) *responses.Land {
+type landMapper struct{}
+
+func (l landMapper) ToHttpResponse(landPbResponse *pb_responses.Land) (*responses.Land, error) {
 	if landPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Land{
@@ -15,5 +17,5 @@ func toLandHttpResponse(landPbResponse *pb_responses.Land) *responses.Land {
 		Q:        int(landPbResponse.GetQ()),
 		R:        int(landPbResponse.GetR()),
 		Location: landPbResponse.GetLocation(),
-	}
+	}, nil
 }

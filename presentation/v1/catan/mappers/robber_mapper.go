@@ -5,12 +5,14 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toRobberHttpResponse(robberPbResponse *pb_responses.Robber) *responses.Robber {
+type robberMapper struct{}
+
+func (r robberMapper) ToHttpResponse(robberPbResponse *pb_responses.Robber) (*responses.Robber, error) {
 	if robberPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Robber{
 		ID: robberPbResponse.GetID(),
-	}
+	}, nil
 }

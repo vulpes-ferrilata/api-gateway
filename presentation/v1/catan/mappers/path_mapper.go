@@ -5,9 +5,11 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toPathHttpResponse(pathPbResponse *pb_responses.Path) *responses.Path {
+type pathMapper struct{}
+
+func (p pathMapper) ToHttpResponse(pathPbResponse *pb_responses.Path) (*responses.Path, error) {
 	if pathPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Path{
@@ -15,5 +17,5 @@ func toPathHttpResponse(pathPbResponse *pb_responses.Path) *responses.Path {
 		Q:        int(pathPbResponse.GetQ()),
 		R:        int(pathPbResponse.GetR()),
 		Location: pathPbResponse.GetLocation(),
-	}
+	}, nil
 }

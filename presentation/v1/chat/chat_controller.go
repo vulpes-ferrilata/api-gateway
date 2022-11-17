@@ -28,6 +28,13 @@ type ChatController struct {
 	websocketServer *neffos.Server
 }
 
+// @Summary Find messages
+// @Description Find messages by room id
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} responses.Message	"ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Router /chat/messages [get]
 func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 	roomID := ctx.URLParam("roomID")
 
@@ -41,7 +48,7 @@ func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 	}
 
 	messageResponses, err := slices.Map(func(messagePbResponse *pb_responses.Message) (*responses.Message, error) {
-		return mappers.ToMessageHttpResponse(messagePbResponse), nil
+		return mappers.MessageMapper.ToHttpResponse(messagePbResponse)
 	}, messageListPbResponse.Messages)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -53,6 +60,13 @@ func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 	}, nil
 }
 
+// @Summary Create message
+// @Description Create new message
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} responses.Message "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Router /chat/messages [post]
 func (c ChatController) Post(ctx iris.Context) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -64,21 +78,6 @@ func (c ChatController) Post(ctx iris.Context) (mvc.Result, error) {
 
 	messageID := gocql.TimeUUID()
 
-	messageResponse := &responses.Message{
-		ID:     messageID.String(),
-		RoomID: messageRequest.RoomID,
-		UserID: userID,
-		Detail: messageRequest.Detail,
-	}
-
-	c.websocketServer.Broadcast(nil, neffos.Message{
-		Namespace: "chat",
-		Room:      messageRequest.RoomID,
-		Event:     "message:created",
-		Body:      neffos.Marshal(messageResponse),
-	})
-
-	//eventually consistence
 	createMessagePbRequest := &pb_requests.CreateMessage{
 		MessageID: messageID.String(),
 		RoomID:    messageRequest.RoomID,
@@ -90,7 +89,21 @@ func (c ChatController) Post(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
+	messageResponse := &responses.Message{
+		ID:     messageID.String(),
+		UserID: userID,
+		Detail: messageRequest.Detail,
+	}
+
+	c.websocketServer.Broadcast(nil, neffos.Message{
+		Namespace: "Chat",
+		Room:      messageRequest.RoomID,
+		Event:     "MessageCreated",
+		Body:      neffos.Marshal(messageResponse),
+	})
+
 	return &mvc.Response{
-		Code: iris.StatusOK,
+		Code:   iris.StatusOK,
+		Object: messageResponse,
 	}, nil
 }

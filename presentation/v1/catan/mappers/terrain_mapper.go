@@ -1,18 +1,27 @@
 package mappers
 
 import (
+	"github.com/pkg/errors"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toTerrainHttpResponse(terrainPbResponse *pb_responses.Terrain) *responses.Terrain {
+type terrainMapper struct{}
+
+func (t terrainMapper) ToHttpResponse(terrainPbResponse *pb_responses.Terrain) (*responses.Terrain, error) {
 	if terrainPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
-	harborHttpResponses := toHarborHttpResponse(terrainPbResponse.GetHarbor())
+	harborHttpResponse, err := harborMapper{}.ToHttpResponse(terrainPbResponse.GetHarbor())
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
-	robberHttpResponse := toRobberHttpResponse(terrainPbResponse.GetRobber())
+	robberHttpResponse, err := robberMapper{}.ToHttpResponse(terrainPbResponse.GetRobber())
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	return &responses.Terrain{
 		ID:     terrainPbResponse.GetID(),
@@ -20,7 +29,7 @@ func toTerrainHttpResponse(terrainPbResponse *pb_responses.Terrain) *responses.T
 		R:      int(terrainPbResponse.GetR()),
 		Number: int(terrainPbResponse.GetNumber()),
 		Type:   terrainPbResponse.GetType(),
-		Harbor: harborHttpResponses,
+		Harbor: harborHttpResponse,
 		Robber: robberHttpResponse,
-	}
+	}, nil
 }

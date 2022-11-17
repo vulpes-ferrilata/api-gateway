@@ -1,4 +1,4 @@
-package presentation
+package iris
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -7,10 +7,11 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/iris/middlewares"
+	"github.com/vulpes-ferrilata/api-gateway/presentation"
 )
 
 func NewServer(validator *validator.Validate, localeMiddleware *middlewares.LocaleMiddleware,
-	router Router) *iris.Application {
+	router presentation.Router) *iris.Application {
 	server := iris.New()
 
 	server.Validator = validator

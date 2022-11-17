@@ -5,14 +5,16 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toDevelopmentCardHttpResponse(developmentCardPbResponse *pb_responses.DevelopmentCard) *responses.DevelopmentCard {
+type developmentCardMapper struct{}
+
+func (d developmentCardMapper) ToHttpResponse(developmentCardPbResponse *pb_responses.DevelopmentCard) (*responses.DevelopmentCard, error) {
 	if developmentCardPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.DevelopmentCard{
 		ID:     developmentCardPbResponse.GetID(),
 		Type:   developmentCardPbResponse.GetType(),
 		Status: developmentCardPbResponse.GetStatus(),
-	}
+	}, nil
 }

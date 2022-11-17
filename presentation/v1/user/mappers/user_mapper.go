@@ -5,13 +5,17 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/user-service-proto/pb/responses"
 )
 
-func ToUserHttpResponse(userPbResponse *pb_responses.User) *responses.User {
+var UserMapper userMapper = userMapper{}
+
+type userMapper struct{}
+
+func (u userMapper) ToHttpResponse(userPbResponse *pb_responses.User) (*responses.User, error) {
 	if userPbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.User{
 		ID:          userPbResponse.GetID(),
 		DisplayName: userPbResponse.GetDisplayName(),
-	}
+	}, nil
 }

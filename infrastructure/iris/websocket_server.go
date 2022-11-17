@@ -1,4 +1,4 @@
-package presentation
+package iris
 
 import (
 	"github.com/kataras/iris/v12/websocket"
@@ -6,7 +6,7 @@ import (
 )
 
 var events = neffos.Namespaces{
-	"catan": {
+	"Catan": {
 		neffos.OnNamespaceConnected: func(c *neffos.NSConn, msg neffos.Message) error {
 			websocket.GetContext(c.Conn).Application().Logger().Infof("[%s] connected to namespace [%s]", c, msg.Namespace)
 
@@ -28,7 +28,7 @@ var events = neffos.Namespaces{
 			return nil
 		},
 	},
-	"chat": {
+	"Chat": {
 		neffos.OnNamespaceConnected: func(c *neffos.NSConn, msg neffos.Message) error {
 			websocket.GetContext(c.Conn).Application().Logger().Infof("[%s] connected to namespace [%s]", c, msg.Namespace)
 

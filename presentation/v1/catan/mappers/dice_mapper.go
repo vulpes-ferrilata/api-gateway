@@ -5,13 +5,15 @@ import (
 	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
 )
 
-func toDiceHttpResponse(dicePbResponse *pb_responses.Dice) *responses.Dice {
+type diceMapper struct{}
+
+func (d diceMapper) ToHttpResponse(dicePbResponse *pb_responses.Dice) (*responses.Dice, error) {
 	if dicePbResponse == nil {
-		return nil
+		return nil, nil
 	}
 
 	return &responses.Dice{
 		ID:     dicePbResponse.GetID(),
 		Number: int(dicePbResponse.GetNumber()),
-	}
+	}, nil
 }

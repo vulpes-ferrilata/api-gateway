@@ -26,6 +26,15 @@ func (u UserController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodGet, "/me", "Me")
 }
 
+// @Summary Get user
+// @Description Get user by id
+// @Accept  json
+// @Produce  json
+// @Param   id     path    string     true        "User ID"
+// @Success 200 {object} responses.User	"ok"
+// @Failure 422 {object} iris.Problem "ID must be a valid ObjectID"
+// @Failure 404 {object} iris.Problem "User not found"
+// @Router /users/{id} [get]
 func (u UserController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 	getUserByIDPbRequest := &pb_requests.GetUserByID{
 		UserID: id,
@@ -36,7 +45,10 @@ func (u UserController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	userResponse := mappers.ToUserHttpResponse(userPbResponse)
+	userResponse, err := mappers.UserMapper.ToHttpResponse(userPbResponse)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	return &mvc.Response{
 		Code:   iris.StatusOK,
@@ -44,6 +56,13 @@ func (u UserController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 	}, nil
 }
 
+// @Summary Get authorized user
+// @Description Get user by user credential
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} responses.User	"ok"
+// @Failure 404 {object} iris.Problem "User not found"
+// @Router /users/me [get]
 func (u UserController) Me(ctx iris.Context) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
@@ -56,7 +75,10 @@ func (u UserController) Me(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	userResponse := mappers.ToUserHttpResponse(userPbResponse)
+	userResponse, err := mappers.UserMapper.ToHttpResponse(userPbResponse)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	return &mvc.Response{
 		Code:   iris.StatusOK,

@@ -1,0 +1,12 @@
+[
+    {
+        "locale": "vi",
+        "key": "internal-error",
+        "trans": "không xong rồi đại vương ơi"
+    },
+    {
+        "locale": "vi",
+        "key": "request-validation-error",
+        "trans": "yêu cầu chứa các tham số không hợp lệ, có thể tìm thấy thêm thông tin trong trường thông tin errors"
+    }
+]
