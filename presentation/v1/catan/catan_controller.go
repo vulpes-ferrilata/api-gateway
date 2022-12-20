@@ -50,6 +50,7 @@ func (c CatanController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, "/{id:string}/play-road-building-card", "PlayRoadBuildingCard")
 	b.Handle(http.MethodPost, "/{id:string}/play-year-of-plenty-card", "PlayYearOfPlentyCard")
 	b.Handle(http.MethodPost, "/{id:string}/play-monopoly-card", "PlayMonopolyCard")
+	b.Handle(http.MethodPost, "/{id:string}/play-victory-point-card", "PlayVictoryPointCard")
 }
 
 // @Summary Get game pagination
@@ -774,9 +775,10 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 	}
 
 	maritimeTradePbRequest := &pb_requests.MaritimeTrade{
-		GameID:           id,
-		UserID:           userID,
-		ResourceCardType: maritimeTradeRequest.ResourceCardType,
+		GameID:                    id,
+		UserID:                    userID,
+		ResourceCardType:          maritimeTradeRequest.ResourceCardType,
+		DemandingResourceCardType: maritimeTradeRequest.DemandingResourceCardType,
 	}
 
 	if _, err := c.catanClient.MaritimeTrade(ctx, maritimeTradePbRequest); err != nil {
@@ -948,6 +950,7 @@ func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Resu
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
+// @Param	developmentCardID	   body    requests.PlayKnightCard	true	"Development Card ID"
 // @Param	terrainID	   body    requests.PlayKnightCard	true	"Terrain ID"
 // @Param	playerID	   body    requests.PlayKnightCard	false	"Player ID"
 // @Success 200 {nil} nil "ok"
@@ -957,6 +960,8 @@ func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Resu
 // @Failure 422 {object} iris.Problem "game has not started yet"
 // @Failure 422 {object} iris.Problem "game already finished"
 // @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected development card must be knight card"
+// @Failure 422 {object} iris.Problem "selected development card is unavailable to use"
 // @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
 // @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
 // @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
@@ -970,10 +975,11 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 	}
 
 	playKnightCardPbRequest := &pb_requests.PlayKnightCard{
-		GameID:    id,
-		UserID:    userID,
-		TerrainID: playKnightCardRequest.TerrainID,
-		PlayerID:  playKnightCardRequest.PlayerID,
+		GameID:            id,
+		UserID:            userID,
+		DevelopmentCardID: playKnightCardRequest.DevelopmentCardID,
+		TerrainID:         playKnightCardRequest.TerrainID,
+		PlayerID:          playKnightCardRequest.PlayerID,
 	}
 
 	if _, err := c.catanClient.PlayKnightCard(ctx, playKnightCardPbRequest); err != nil {
@@ -1001,6 +1007,7 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
+// @Param	developmentCardID	   body    requests.PlayRoadBuildingCard	true	"Development Card ID"
 // @Param	pathIDs	   body    requests.PlayRoadBuildingCard	true	"List of Path ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
@@ -1009,6 +1016,8 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 // @Failure 422 {object} iris.Problem "game has not started yet"
 // @Failure 422 {object} iris.Problem "game already finished"
 // @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected development card must be road building card"
+// @Failure 422 {object} iris.Problem "selected development card is unavailable to use"
 // @Failure 422 {object} iris.Problem "selected path must be adjacent to your construction or road"
 // @Failure 422 {object} iris.Problem "selected path pass through construction of other player"
 // @Failure 422 {object} iris.Problem "you run out of roads"
@@ -1022,9 +1031,10 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 	}
 
 	playRoadBuildingCardPbRequest := &pb_requests.PlayRoadBuildingCard{
-		GameID:  id,
-		UserID:  userID,
-		PathIDs: playRoadBuildingCardRequest.PathIDs,
+		GameID:            id,
+		UserID:            userID,
+		DevelopmentCardID: playRoadBuildingCardRequest.DevelopmentCardID,
+		PathIDs:           playRoadBuildingCardRequest.PathIDs,
 	}
 
 	if _, err := c.catanClient.PlayRoadBuildingCard(ctx, playRoadBuildingCardPbRequest); err != nil {
@@ -1052,6 +1062,7 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
+// @Param	developmentCardID	   body    requests.PlayYearOfPlentyCard	true	"Development Card ID"
 // @Param	resourceCardTypes	   body    requests.PlayYearOfPlentyCard	true	"List of Resource Card Type"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
@@ -1059,6 +1070,8 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 // @Failure 422 {object} iris.Problem "game has not started yet"
 // @Failure 422 {object} iris.Problem "game already finished"
 // @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected development card must be year of plenty card"
+// @Failure 422 {object} iris.Problem "selected development card is unavailable to use"
 // @Failure 422 {object} iris.Problem "selected path must be adjacent to your construction or road"
 // @Failure 422 {object} iris.Problem "selected path pass through construction of other player"
 // @Failure 422 {object} iris.Problem "game has insufficient resource cards"
@@ -1072,9 +1085,10 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 	}
 
 	playYearOfPlentyCardPbRequest := &pb_requests.PlayYearOfPlentyCard{
-		GameID:            id,
-		UserID:            userID,
-		ResourceCardTypes: playYearOfPlentyCardRequest.ResourceCardTypes,
+		GameID:                     id,
+		UserID:                     userID,
+		DevelopmentCardID:          playYearOfPlentyCardRequest.DevelopmentCardID,
+		DemandingResourceCardTypes: playYearOfPlentyCardRequest.DemandingResourceCardTypes,
 	}
 
 	if _, err := c.catanClient.PlayYearOfPlentyCard(ctx, playYearOfPlentyCardPbRequest); err != nil {
@@ -1102,6 +1116,7 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
+// @Param	developmentCardID	   body    requests.PlayMonopolyCard	true	"Development Card ID"
 // @Param	resourceCardType	   body    requests.PlayMonopolyCard	true	"Resource Card Type"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
@@ -1109,6 +1124,8 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 // @Failure 422 {object} iris.Problem "game has not started yet"
 // @Failure 422 {object} iris.Problem "game already finished"
 // @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected development card must be monopoly card"
+// @Failure 422 {object} iris.Problem "selected development card is unavailable to use"
 // @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
 // @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
 // @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
@@ -1122,9 +1139,10 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 	}
 
 	playMonopolyCardPbRequest := &pb_requests.PlayMonopolyCard{
-		GameID:           id,
-		UserID:           userID,
-		ResourceCardType: playMonopolyCardRequest.ResourceCardType,
+		GameID:                    id,
+		UserID:                    userID,
+		DevelopmentCardID:         playMonopolyCardRequest.DevelopmentCardID,
+		DemandingResourceCardType: playMonopolyCardRequest.DemandingResourceCardType,
 	}
 
 	if _, err := c.catanClient.PlayMonopolyCard(ctx, playMonopolyCardPbRequest); err != nil {
@@ -1139,6 +1157,58 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 		Namespace: "Catan",
 		Room:      id,
 		Event:     "MonopolyCardPlayed",
+		Body:      neffos.Marshal(messageResponse),
+	})
+
+	return &mvc.Response{
+		Code: iris.StatusOK,
+	}, nil
+}
+
+// @Summary Play victory point card
+// @Description Play victory point development card from your stack at any phase of started state
+// @Accept  json
+// @Produce  json
+// @Param	id	   path    string	true	"Game ID"
+// @Param	developmentCardID	   body    requests.PlayVictoryPointCard	true	"Development Card ID"
+// @Success 200 {nil} nil "ok"
+// @Failure 400 {object} iris.Problem "the request contains invalid parameters"
+// @Failure 404 {object} iris.Problem "development card not found"
+// @Failure 422 {object} iris.Problem "game has not started yet"
+// @Failure 422 {object} iris.Problem "game already finished"
+// @Failure 422 {object} iris.Problem "you are not in turn"
+// @Failure 422 {object} iris.Problem "selected development card must be victory point card"
+// @Failure 422 {object} iris.Problem "selected development card is unavailable to use"
+// @Failure 422 {object} iris.Problem "robber must be moved to other terrain"
+// @Failure 422 {object} iris.Problem "you must rob player who has construction next to robber"
+// @Failure 422 {object} iris.Problem "selected player must have construction next to robber"
+// @Router /catan/games/{id}/play-victory-point-card [post]
+func (c CatanController) PlayVictoryPointCard(ctx iris.Context, id string) (mvc.Result, error) {
+	userID := context_values.GetUserID(ctx)
+	playVictoryPointCardRequest := &requests.PlayVictoryPointCard{}
+
+	if err := ctx.ReadJSON(playVictoryPointCardRequest); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	playVictoryPointCardPbRequest := &pb_requests.PlayVictoryPointCard{
+		GameID:            id,
+		UserID:            userID,
+		DevelopmentCardID: playVictoryPointCardRequest.DevelopmentCardID,
+	}
+
+	if _, err := c.catanClient.PlayVictoryPointCard(ctx, playVictoryPointCardPbRequest); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	messageResponse := &responses.Message{
+		UserID: userID,
+	}
+
+	c.websocketServer.Broadcast(nil, neffos.Message{
+		Namespace: "Catan",
+		Room:      id,
+		Event:     "VictoryPointCardPlayed",
 		Body:      neffos.Marshal(messageResponse),
 	})
 

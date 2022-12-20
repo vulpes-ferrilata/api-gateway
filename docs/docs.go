@@ -933,6 +933,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "description": "Development Card ID",
+                        "name": "developmentCardID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.PlayKnightCard"
+                        }
+                    },
+                    {
                         "description": "Terrain ID",
                         "name": "terrainID",
                         "in": "body",
@@ -997,6 +1006,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "description": "Development Card ID",
+                        "name": "developmentCardID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.PlayMonopolyCard"
+                        }
+                    },
+                    {
                         "description": "Resource Card Type",
                         "name": "resourceCardType",
                         "in": "body",
@@ -1053,6 +1071,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "description": "Development Card ID",
+                        "name": "developmentCardID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.PlayRoadBuildingCard"
+                        }
+                    },
+                    {
                         "description": "List of Path ID",
                         "name": "pathIDs",
                         "in": "body",
@@ -1090,6 +1117,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/catan/games/{id}/play-victory-point-card": {
+            "post": {
+                "description": "Play victory point development card from your stack at any phase of started state",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Play victory point card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Game ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Development Card ID",
+                        "name": "developmentCardID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.PlayVictoryPointCard"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "nil"
+                        }
+                    },
+                    "400": {
+                        "description": "the request contains invalid parameters",
+                        "schema": {
+                            "$ref": "#/definitions/iris.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "development card not found",
+                        "schema": {
+                            "$ref": "#/definitions/iris.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "selected player must have construction next to robber",
+                        "schema": {
+                            "$ref": "#/definitions/iris.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/catan/games/{id}/play-year-of-plenty-card": {
             "post": {
                 "description": "Play year of plenty development card from your stack at any phase of started state",
@@ -1107,6 +1190,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Development Card ID",
+                        "name": "developmentCardID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.PlayYearOfPlentyCard"
+                        }
                     },
                     {
                         "description": "List of Resource Card Type",
@@ -1578,6 +1670,9 @@ const docTemplate = `{
         "requests.MaritimeTrade": {
             "type": "object",
             "properties": {
+                "demandingResourceCardType": {
+                    "type": "string"
+                },
                 "resourceCardType": {
                     "type": "string"
                 }
@@ -1600,9 +1695,13 @@ const docTemplate = `{
         "requests.PlayKnightCard": {
             "type": "object",
             "required": [
+                "developmentCardID",
                 "terrainID"
             ],
             "properties": {
+                "developmentCardID": {
+                    "type": "string"
+                },
                 "playerID": {
                     "type": "string"
                 },
@@ -1613,8 +1712,14 @@ const docTemplate = `{
         },
         "requests.PlayMonopolyCard": {
             "type": "object",
+            "required": [
+                "developmentCardID"
+            ],
             "properties": {
-                "resourceCardType": {
+                "demandingResourceCardType": {
+                    "type": "string"
+                },
+                "developmentCardID": {
                     "type": "string"
                 }
             }
@@ -1622,9 +1727,13 @@ const docTemplate = `{
         "requests.PlayRoadBuildingCard": {
             "type": "object",
             "required": [
+                "developmentCardID",
                 "pathIDs"
             ],
             "properties": {
+                "developmentCardID": {
+                    "type": "string"
+                },
                 "pathIDs": {
                     "type": "array",
                     "maxItems": 2,
@@ -1636,19 +1745,34 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.PlayVictoryPointCard": {
+            "type": "object",
+            "required": [
+                "developmentCardID"
+            ],
+            "properties": {
+                "developmentCardID": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.PlayYearOfPlentyCard": {
             "type": "object",
             "required": [
-                "resourceCardTypes"
+                "demandingResourceCardTypes",
+                "developmentCardID"
             ],
             "properties": {
-                "resourceCardTypes": {
+                "demandingResourceCardTypes": {
                     "type": "array",
                     "maxItems": 2,
                     "minItems": 1,
                     "items": {
                         "type": "string"
                     }
+                },
+                "developmentCardID": {
+                    "type": "string"
                 }
             }
         },
@@ -1913,16 +2037,7 @@ const docTemplate = `{
         "responses.Message": {
             "type": "object",
             "properties": {
-                "Detail": {
-                    "type": "string"
-                },
-                "ID": {
-                    "type": "string"
-                },
-                "RoomID": {
-                    "type": "string"
-                },
-                "UserID": {
+                "userID": {
                     "type": "string"
                 }
             }

@@ -40,6 +40,8 @@ definitions:
     type: object
   requests.MaritimeTrade:
     properties:
+      demandingResourceCardType:
+        type: string
       resourceCardType:
         type: string
     type: object
@@ -54,20 +56,29 @@ definitions:
     type: object
   requests.PlayKnightCard:
     properties:
+      developmentCardID:
+        type: string
       playerID:
         type: string
       terrainID:
         type: string
     required:
+    - developmentCardID
     - terrainID
     type: object
   requests.PlayMonopolyCard:
     properties:
-      resourceCardType:
+      demandingResourceCardType:
         type: string
+      developmentCardID:
+        type: string
+    required:
+    - developmentCardID
     type: object
   requests.PlayRoadBuildingCard:
     properties:
+      developmentCardID:
+        type: string
       pathIDs:
         items:
           type: string
@@ -76,18 +87,29 @@ definitions:
         type: array
         uniqueItems: true
     required:
+    - developmentCardID
     - pathIDs
+    type: object
+  requests.PlayVictoryPointCard:
+    properties:
+      developmentCardID:
+        type: string
+    required:
+    - developmentCardID
     type: object
   requests.PlayYearOfPlentyCard:
     properties:
-      resourceCardTypes:
+      demandingResourceCardTypes:
         items:
           type: string
         maxItems: 2
         minItems: 1
         type: array
+      developmentCardID:
+        type: string
     required:
-    - resourceCardTypes
+    - demandingResourceCardTypes
+    - developmentCardID
     type: object
   requests.Refresh:
     properties:
@@ -260,13 +282,7 @@ definitions:
     type: object
   responses.Message:
     properties:
-      Detail:
-        type: string
-      ID:
-        type: string
-      RoomID:
-        type: string
-      UserID:
+      userID:
         type: string
     type: object
   responses.Path:
@@ -986,6 +1002,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Development Card ID
+        in: body
+        name: developmentCardID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayKnightCard'
       - description: Terrain ID
         in: body
         name: terrainID
@@ -1029,6 +1051,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Development Card ID
+        in: body
+        name: developmentCardID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayMonopolyCard'
       - description: Resource Card Type
         in: body
         name: resourceCardType
@@ -1067,6 +1095,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Development Card ID
+        in: body
+        name: developmentCardID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayRoadBuildingCard'
       - description: List of Path ID
         in: body
         name: pathIDs
@@ -1093,6 +1127,44 @@ paths:
           schema:
             $ref: '#/definitions/iris.Problem'
       summary: Play road building card
+  /catan/games/{id}/play-victory-point-card:
+    post:
+      consumes:
+      - application/json
+      description: Play victory point development card from your stack at any phase
+        of started state
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Development Card ID
+        in: body
+        name: developmentCardID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayVictoryPointCard'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: nil
+        "400":
+          description: the request contains invalid parameters
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "404":
+          description: development card not found
+          schema:
+            $ref: '#/definitions/iris.Problem'
+        "422":
+          description: selected player must have construction next to robber
+          schema:
+            $ref: '#/definitions/iris.Problem'
+      summary: Play victory point card
   /catan/games/{id}/play-year-of-plenty-card:
     post:
       consumes:
@@ -1105,6 +1177,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Development Card ID
+        in: body
+        name: developmentCardID
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PlayYearOfPlentyCard'
       - description: List of Resource Card Type
         in: body
         name: resourceCardTypes

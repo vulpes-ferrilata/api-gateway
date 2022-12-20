@@ -1,6 +1,7 @@
 package requests
 
 type PlayKnightCard struct {
-	TerrainID string `json:"terrainID" validate:"required,objectid"`
-	PlayerID  string `json:"playerID" validate:"omitempty,objectid"`
+	DevelopmentCardID string `json:"developmentCardID" validate:"required,objectid"`
+	TerrainID         string `json:"terrainID" validate:"required,objectid"`
+	PlayerID          string `json:"playerID" validate:"omitempty,objectid"`
 }

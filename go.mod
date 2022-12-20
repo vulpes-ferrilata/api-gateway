@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.3.2
 	github.com/vulpes-ferrilata/authentication-service-proto v0.0.0-20220927111235-b2eab51e8756
-	github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221012113322-ba667349687c
+	github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221218111551-27ed3736d612
 	github.com/vulpes-ferrilata/chat-service-proto v0.0.0-20220930092048-8d1c85a124ec
 	github.com/vulpes-ferrilata/user-service-proto v0.0.0-20220927110550-ba6441dde29e
 	go.mongodb.org/mongo-driver v1.10.1

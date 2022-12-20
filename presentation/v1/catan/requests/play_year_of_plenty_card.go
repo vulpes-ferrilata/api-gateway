@@ -1,5 +1,6 @@
 package requests
 
 type PlayYearOfPlentyCard struct {
-	ResourceCardTypes []string `json:"resourceCardTypes" validate:"required,min=1,max=2"`
+	DevelopmentCardID          string   `json:"developmentCardID" validate:"required,objectid"`
+	DemandingResourceCardTypes []string `json:"demandingResourceCardTypes" validate:"required,min=1,max=2"`
 }

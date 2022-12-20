@@ -335,6 +335,14 @@ github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221010080630-4d43b0b981
 github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221010080630-4d43b0b981aa/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
 github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221012113322-ba667349687c h1:WnpQW/ipOUE3VWU4I+c/Jcu5SJXuxnBsuTU7rzU6lGQ=
 github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221012113322-ba667349687c/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213105851-3c344cfd0239 h1:8UUnpWTh0007CKimet7Pq//wYnmGVoDfTixYsPlR90I=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213105851-3c344cfd0239/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213111048-60c9f56d255c h1:eR0u2/SNi4awFGL8/BWP6HhVJGUKwnQfdE2SqC5erNo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213111048-60c9f56d255c/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213111621-8b6987f203df h1:PCVrg9d2T8NeTWS21ZLxul22DkVMTYqxs0/+iKYArEU=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221213111621-8b6987f203df/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221218111551-27ed3736d612 h1:eQVC4xc7Rp3G56/sUTgyNkdoqoJ2EEh7xM2brW600Qo=
+github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221218111551-27ed3736d612/go.mod h1:6wx5oaoT2RDFiCtCvVyrYWMImYpRknJVmFgK/h7WKGo=
 github.com/vulpes-ferrilata/chat-service-proto v0.0.0-20220930092048-8d1c85a124ec h1:eMtwlaofYGgkOkO7z4AaDRERTTc/1wdLHF59nCdqNzo=
 github.com/vulpes-ferrilata/chat-service-proto v0.0.0-20220930092048-8d1c85a124ec/go.mod h1:/VWbgzsvnn5D8h5+x0Da3BSnuWkfCIUIzj6pcZkN1/s=
 github.com/vulpes-ferrilata/user-service-proto v0.0.0-20220927110550-ba6441dde29e h1:2eRl0Lmy8UiXIqja/9vhuQara5h4xTEELJQf7b0GxHo=
