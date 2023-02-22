@@ -16,7 +16,7 @@ import (
 )
 
 type Router interface {
-	Init(server *iris.Application)
+	Init(route iris.Party)
 }
 
 func NewRouter(errorHandlerMiddleware *middlewares.ErrorHandlerMiddleware,
@@ -47,18 +47,18 @@ type router struct {
 	chatController           *chat.ChatController
 }
 
-func (r router) Init(server *iris.Application) {
+func (r router) Init(route iris.Party) {
 	config := &swagger.Config{
 		// The url pointing to API definition.
 		URL:         "/swagger/doc.json",
 		DeepLinking: true,
 	}
 	swaggerUI := swagger.CustomWrapHandler(config, swaggerFiles.Handler)
-	server.Get("/swagger/{any:path}", swaggerUI)
+	route.Get("/swagger/{any:path}", swaggerUI)
 
-	server.Get("/websocket", websocket.Handler(r.websocketServer))
+	route.Get("/websocket", websocket.Handler(r.websocketServer))
 
-	api := server.Party("/api")
+	api := route.Party("/api")
 	v1 := api.Party("/v1")
 
 	user := mvc.New(v1.Party("/users"))

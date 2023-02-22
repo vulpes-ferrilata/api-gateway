@@ -2,13 +2,13 @@ package mappers
 
 import (
 	"github.com/pkg/errors"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 )
 
 type roadMapper struct{}
 
-func (r roadMapper) ToHttpResponse(roadPbResponse *pb_responses.Road) (*responses.Road, error) {
+func (r roadMapper) ToHttpResponse(roadPbResponse *pb_models.Road) (*models.Road, error) {
 	if roadPbResponse == nil {
 		return nil, nil
 	}
@@ -18,7 +18,7 @@ func (r roadMapper) ToHttpResponse(roadPbResponse *pb_responses.Road) (*response
 		return nil, errors.WithStack(err)
 	}
 
-	return &responses.Road{
+	return &models.Road{
 		ID:   roadPbResponse.GetID(),
 		Path: pathHttpResponse,
 	}, nil

@@ -1,16 +1,16 @@
 package mappers
 
 import (
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/responses"
-	pb_responses "github.com/vulpes-ferrilata/authentication-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/models"
+	pb_models "github.com/vulpes-ferrilata/authentication-service-proto/pb/models"
 )
 
-func ToTokenHttpResponse(tokenPbResponse *pb_responses.Token) *responses.Token {
+func ToTokenHttpResponse(tokenPbResponse *pb_models.Token) *models.Token {
 	if tokenPbResponse == nil {
 		return nil
 	}
 
-	return &responses.Token{
+	return &models.Token{
 		AccessToken:  tokenPbResponse.GetAccessToken(),
 		RefreshToken: tokenPbResponse.GetRefreshToken(),
 	}

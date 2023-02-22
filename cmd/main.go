@@ -3,13 +3,13 @@ package main
 import (
 	"github.com/kataras/iris/v12"
 	"github.com/pkg/errors"
+	"github.com/vulpes-ferrilata/api-gateway/config"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure"
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/config"
 )
 
 // @title Tumbleweeds Api Gateway
 // @version 1.0
-// @description Backend RestAPI for Tumbleweeds project
+// @description Backend Rest API for Tumbleweeds project
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name Trung Hieu Nguyen

@@ -2,13 +2,13 @@ package mappers
 
 import (
 	"github.com/pkg/errors"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 )
 
 type terrainMapper struct{}
 
-func (t terrainMapper) ToHttpResponse(terrainPbResponse *pb_responses.Terrain) (*responses.Terrain, error) {
+func (t terrainMapper) ToHttpResponse(terrainPbResponse *pb_models.Terrain) (*models.Terrain, error) {
 	if terrainPbResponse == nil {
 		return nil, nil
 	}
@@ -23,7 +23,7 @@ func (t terrainMapper) ToHttpResponse(terrainPbResponse *pb_responses.Terrain) (
 		return nil, errors.WithStack(err)
 	}
 
-	return &responses.Terrain{
+	return &models.Terrain{
 		ID:     terrainPbResponse.GetID(),
 		Q:      int(terrainPbResponse.GetQ()),
 		R:      int(terrainPbResponse.GetR()),

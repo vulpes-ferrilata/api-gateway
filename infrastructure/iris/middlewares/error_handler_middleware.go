@@ -9,7 +9,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/pkg/errors"
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/app_errors"
+	"github.com/vulpes-ferrilata/api-gateway/app_errors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
 	"google.golang.org/grpc/status"
 )

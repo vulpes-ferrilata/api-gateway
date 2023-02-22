@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/config"
+	"github.com/vulpes-ferrilata/api-gateway/config"
 )
 
 func NewConfig() (config.Config, error) {
@@ -16,11 +16,6 @@ func NewConfig() (config.Config, error) {
 	viper.SetConfigType("yaml")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
-
-	viper.BindEnv("SERVER_ADDRESS")
-	viper.BindEnv("USER_SERVICE_ADDRESS")
-	viper.BindEnv("AUTHENTICATION_SERVICE_ADDRESS")
-	viper.BindEnv("CATAN_SERVICE_ADDRESS")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return config, errors.WithStack(err)

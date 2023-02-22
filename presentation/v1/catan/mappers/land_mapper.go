@@ -1,18 +1,18 @@
 package mappers
 
 import (
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 )
 
 type landMapper struct{}
 
-func (l landMapper) ToHttpResponse(landPbResponse *pb_responses.Land) (*responses.Land, error) {
+func (l landMapper) ToHttpResponse(landPbResponse *pb_models.Land) (*models.Land, error) {
 	if landPbResponse == nil {
 		return nil, nil
 	}
 
-	return &responses.Land{
+	return &models.Land{
 		ID:       landPbResponse.GetID(),
 		Q:        int(landPbResponse.GetQ()),
 		R:        int(landPbResponse.GetR()),

@@ -1,18 +1,18 @@
 package mappers
 
 import (
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 )
 
 type pathMapper struct{}
 
-func (p pathMapper) ToHttpResponse(pathPbResponse *pb_responses.Path) (*responses.Path, error) {
+func (p pathMapper) ToHttpResponse(pathPbResponse *pb_models.Path) (*models.Path, error) {
 	if pathPbResponse == nil {
 		return nil, nil
 	}
 
-	return &responses.Path{
+	return &models.Path{
 		ID:       pathPbResponse.GetID(),
 		Q:        int(pathPbResponse.GetQ()),
 		R:        int(pathPbResponse.GetR()),

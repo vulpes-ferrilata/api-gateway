@@ -8,9 +8,9 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	vi_translations "github.com/go-playground/validator/v10/translations/vi"
 	"github.com/pkg/errors"
-	custom_en_translations "github.com/vulpes-ferrilata/api-gateway/infrastructure/validator/translations/en"
-	custom_vi_translations "github.com/vulpes-ferrilata/api-gateway/infrastructure/validator/translations/vi"
-	custom_validators "github.com/vulpes-ferrilata/api-gateway/infrastructure/validator/validators"
+	custom_en_translations "github.com/vulpes-ferrilata/custom-validator/translations/en"
+	custom_vi_translations "github.com/vulpes-ferrilata/custom-validator/translations/vi"
+	custom_validators "github.com/vulpes-ferrilata/custom-validator/validators"
 )
 
 var (

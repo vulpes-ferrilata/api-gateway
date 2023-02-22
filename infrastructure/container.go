@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/grpc/clients"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/grpc/interceptors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/iris"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/iris/middlewares"
@@ -20,13 +19,12 @@ func NewContainer() *dig.Container {
 	container.Provide(NewConfig)
 	container.Provide(NewUniversalTranslator)
 	container.Provide(NewValidator)
-	container.Provide(iris.NewServer)
 	container.Provide(iris.NewWebsocketServer)
 	//--GRPC Clients
-	container.Provide(clients.NewUserClient)
-	container.Provide(clients.NewAuthenticationClient)
-	container.Provide(clients.NewCatanClient)
-	container.Provide(clients.NewChatClient)
+	container.Provide(NewUserClient)
+	container.Provide(NewAuthenticationClient)
+	container.Provide(NewCatanClient)
+	container.Provide(NewChatClient)
 	//--Grpc interceptors
 	container.Provide(interceptors.NewLocaleInterceptor)
 	//--Iris middlewares
@@ -35,6 +33,8 @@ func NewContainer() *dig.Container {
 	container.Provide(middlewares.NewLocaleMiddleware)
 
 	//Presentation layer
+	//--Server
+	container.Provide(presentation.NewServer)
 	//--Router
 	container.Provide(presentation.NewRouter)
 	//--Controllers

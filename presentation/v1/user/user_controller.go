@@ -9,7 +9,7 @@ import (
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/user/mappers"
 	"github.com/vulpes-ferrilata/user-service-proto/pb"
-	pb_requests "github.com/vulpes-ferrilata/user-service-proto/pb/requests"
+	pb_models "github.com/vulpes-ferrilata/user-service-proto/pb/models"
 )
 
 func NewUserController(userClient pb.UserClient) *UserController {
@@ -36,7 +36,7 @@ func (u UserController) BeforeActivation(b mvc.BeforeActivation) {
 // @Failure 404 {object} iris.Problem "User not found"
 // @Router /users/{id} [get]
 func (u UserController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
-	getUserByIDPbRequest := &pb_requests.GetUserByID{
+	getUserByIDPbRequest := &pb_models.GetUserByIDRequest{
 		UserID: id,
 	}
 
@@ -66,7 +66,7 @@ func (u UserController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 func (u UserController) Me(ctx iris.Context) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	getUserByIDPbRequest := &pb_requests.GetUserByID{
+	getUserByIDPbRequest := &pb_models.GetUserByIDRequest{
 		UserID: userID,
 	}
 

@@ -2,13 +2,13 @@ package mappers
 
 import (
 	"github.com/pkg/errors"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
-	pb_responses "github.com/vulpes-ferrilata/catan-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 )
 
 type constructionMapper struct{}
 
-func (c constructionMapper) ToHttpResponse(constructionPbResponse *pb_responses.Construction) (*responses.Construction, error) {
+func (c constructionMapper) ToHttpResponse(constructionPbResponse *pb_models.Construction) (*models.Construction, error) {
 	if constructionPbResponse == nil {
 		return nil, nil
 	}
@@ -18,7 +18,7 @@ func (c constructionMapper) ToHttpResponse(constructionPbResponse *pb_responses.
 		return nil, errors.WithStack(err)
 	}
 
-	return &responses.Construction{
+	return &models.Construction{
 		ID:   constructionPbResponse.GetID(),
 		Type: constructionPbResponse.GetType(),
 		Land: landHttpResponse,

@@ -9,10 +9,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/mappers"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/requests"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/catan/models"
 	"github.com/vulpes-ferrilata/catan-service-proto/pb"
-	pb_requests "github.com/vulpes-ferrilata/catan-service-proto/pb/requests"
+	pb_models "github.com/vulpes-ferrilata/catan-service-proto/pb/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -59,14 +58,14 @@ func (c CatanController) BeforeActivation(b mvc.BeforeActivation) {
 // @Produce  json
 // @Param	limit	   query    int    false	"Limit"
 // @Param	offset	   query    int	   false	"Offset"
-// @Success 200 {object} responses.GamePagination "ok"
+// @Success 200 {object} models.GamePagination "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Router /catan/games [get]
 func (c CatanController) Get(ctx iris.Context) (mvc.Result, error) {
 	limit := ctx.URLParamIntDefault("limit", 0)
 	offset := ctx.URLParamIntDefault("offset", 0)
 
-	findGamePaginationByLimitByOffsetPbRequest := &pb_requests.FindGamePaginationByLimitByOffset{
+	findGamePaginationByLimitByOffsetPbRequest := &pb_models.FindGamePaginationByLimitByOffsetRequest{
 		Limit:  int32(limit),
 		Offset: int32(offset),
 	}
@@ -76,14 +75,14 @@ func (c CatanController) Get(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	gameResponses, err := mappers.GamePaginationMapper.ToHttpResponse(gamePaginationPbResponse)
+	gamemodels, err := mappers.GamePaginationMapper.ToHttpResponse(gamePaginationPbResponse)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	return &mvc.Response{
 		Code:   iris.StatusOK,
-		Object: gameResponses,
+		Object: gamemodels,
 	}, nil
 }
 
@@ -92,14 +91,14 @@ func (c CatanController) Get(ctx iris.Context) (mvc.Result, error) {
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Success 200 {object} responses.GameDetail "ok"
+// @Success 200 {object} models.GameDetail "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "game not found"
 // @Router /catan/games/{id} [get]
 func (c CatanController) GetBy(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	getGameDetailByIDByUserIDPbRequest := &pb_requests.GetGameDetailByIDByUserID{
+	getGameDetailByIDByUserIDPbRequest := &pb_models.GetGameDetailByIDByUserIDRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -124,7 +123,7 @@ func (c CatanController) GetBy(ctx iris.Context, id string) (mvc.Result, error) 
 // @Description Create new game
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} responses.GameDetail "ok"
+// @Success 200 {object} models.GameDetail "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Router /catan/games/ [post]
 func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
@@ -132,7 +131,7 @@ func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 
 	gameID := primitive.NewObjectID()
 
-	createGamePbRequest := &pb_requests.CreateGame{
+	createGamePbRequest := &pb_models.CreateGameRequest{
 		GameID: gameID.Hex(),
 		UserID: userID,
 	}
@@ -141,7 +140,7 @@ func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -175,7 +174,7 @@ func (c CatanController) Post(ctx iris.Context) (mvc.Result, error) {
 func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	joinGamePbRequest := &pb_requests.JoinGame{
+	joinGamePbRequest := &pb_models.JoinGameRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -184,7 +183,7 @@ func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -215,7 +214,7 @@ func (c CatanController) Join(ctx iris.Context, id string) (mvc.Result, error) {
 func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	startGamePbRequest := &pb_requests.StartGame{
+	startGamePbRequest := &pb_models.StartGameRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -224,7 +223,7 @@ func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) 
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -245,8 +244,8 @@ func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) 
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	landID	   body    requests.BuildSettlementAndRoad	true	"Land ID"
-// @Param	pathID	   body    requests.BuildSettlementAndRoad	true	"Path ID"
+// @Param	landID	   body    models.BuildSettlementAndRoadRequest	true	"Land ID"
+// @Param	pathID	   body    models.BuildSettlementAndRoadRequest	true	"Path ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "land not found"
@@ -259,13 +258,13 @@ func (c CatanController) Start(ctx iris.Context, id string) (mvc.Result, error) 
 // @Router /catan/games/{id}/build-settlement-and-road [post]
 func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	buildSettlementAndRoadRequest := &requests.BuildSettlementAndRoad{}
+	buildSettlementAndRoadRequest := &models.BuildSettlementAndRoadRequest{}
 
 	if err := ctx.ReadJSON(buildSettlementAndRoadRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	buildSettlementAndRoadPbRequest := &pb_requests.BuildSettlementAndRoad{
+	buildSettlementAndRoadPbRequest := &pb_models.BuildSettlementAndRoadRequest{
 		GameID: id,
 		UserID: userID,
 		LandID: buildSettlementAndRoadRequest.LandID,
@@ -276,7 +275,7 @@ func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mv
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -310,7 +309,7 @@ func (c CatanController) BuildSettlementAndRoad(ctx iris.Context, id string) (mv
 func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	rollDicesPbRequest := &pb_requests.RollDices{
+	rollDicesPbRequest := &pb_models.RollDicesRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -319,7 +318,7 @@ func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, err
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -340,7 +339,7 @@ func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, err
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	resourceCardIDs	   body    requests.BuildSettlementAndRoad	true	"List of Resource Card ID"
+// @Param	resourceCardIDs	   body    models.DiscardResourceCardsRequest	true	"List of Resource Card ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "player not found"
@@ -356,13 +355,13 @@ func (c CatanController) RollDices(ctx iris.Context, id string) (mvc.Result, err
 // @Router /catan/games/{id}/discard-resource-cards [post]
 func (c CatanController) DiscardResourceCards(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	discardResourceCardsRequest := &requests.DiscardResourceCards{}
+	discardResourceCardsRequest := &models.DiscardResourceCardsRequest{}
 
 	if err := ctx.ReadJSON(discardResourceCardsRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	discardResourceCardsPbRequest := &pb_requests.DiscardResourceCards{
+	discardResourceCardsPbRequest := &pb_models.DiscardResourceCardsRequest{
 		GameID:          id,
 		UserID:          userID,
 		ResourceCardIDs: discardResourceCardsRequest.ResourceCardIDs,
@@ -372,7 +371,7 @@ func (c CatanController) DiscardResourceCards(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -393,8 +392,8 @@ func (c CatanController) DiscardResourceCards(ctx iris.Context, id string) (mvc.
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	terrainID	   body    requests.MoveRobber	true	"Terrain ID"
-// @Param	playerID	   body    requests.MoveRobber	false	"Player ID"
+// @Param	terrainID	   body    models.MoveRobberRequest	true	"Terrain ID"
+// @Param	playerID	   body    models.MoveRobberRequest	false	"Player ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "terrain not found"
@@ -412,13 +411,13 @@ func (c CatanController) DiscardResourceCards(ctx iris.Context, id string) (mvc.
 // @Router /catan/games/{id}/move-robber [post]
 func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	moveRobberRequest := &requests.MoveRobber{}
+	moveRobberRequest := &models.MoveRobberRequest{}
 
 	if err := ctx.ReadJSON(moveRobberRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	moveRobberPbRequest := &pb_requests.MoveRobber{
+	moveRobberPbRequest := &pb_models.MoveRobberRequest{
 		GameID:    id,
 		UserID:    userID,
 		TerrainID: moveRobberRequest.TerrainID,
@@ -429,7 +428,7 @@ func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, er
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -464,7 +463,7 @@ func (c CatanController) MoveRobber(ctx iris.Context, id string) (mvc.Result, er
 func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	endTurnPbRequest := &pb_requests.EndTurn{
+	endTurnPbRequest := &pb_models.EndTurnRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -473,7 +472,7 @@ func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -494,7 +493,7 @@ func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	landID	   body    requests.BuildSettlement	true	"Land ID"
+// @Param	landID	   body    models.BuildSettlementRequest	true	"Land ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "land not found"
@@ -512,13 +511,13 @@ func (c CatanController) EndTurn(ctx iris.Context, id string) (mvc.Result, error
 // @Router /catan/games/{id}/build-settlement [post]
 func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	buildSettlementRequest := &requests.BuildSettlement{}
+	buildSettlementRequest := &models.BuildSettlementRequest{}
 
 	if err := ctx.ReadJSON(buildSettlementRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	buildSettlementPbRequest := &pb_requests.BuildSettlement{
+	buildSettlementPbRequest := &pb_models.BuildSettlementRequest{
 		GameID: id,
 		UserID: userID,
 		LandID: buildSettlementRequest.LandID,
@@ -528,7 +527,7 @@ func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Resul
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -549,7 +548,7 @@ func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Resul
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	pathID	   body    requests.BuildRoad	true	"Path ID"
+// @Param	pathID	   body    models.BuildRoadRequest	true	"Path ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "path not found"
@@ -567,13 +566,13 @@ func (c CatanController) BuildSettlement(ctx iris.Context, id string) (mvc.Resul
 // @Router /catan/games/{id}/build-road [post]
 func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	buildRoadRequest := &requests.BuildRoad{}
+	buildRoadRequest := &models.BuildRoadRequest{}
 
 	if err := ctx.ReadJSON(buildRoadRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	buildRoadPbRequest := &pb_requests.BuildRoad{
+	buildRoadPbRequest := &pb_models.BuildRoadRequest{
 		GameID: id,
 		UserID: userID,
 		PathID: buildRoadRequest.PathID,
@@ -583,7 +582,7 @@ func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, err
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -604,7 +603,7 @@ func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, err
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	constructionID	   body    requests.UpgradeCity	true	"Construction ID"
+// @Param	constructionID	   body    models.UpgradeCityRequest	true	"Construction ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "construction not found"
@@ -622,13 +621,13 @@ func (c CatanController) BuildRoad(ctx iris.Context, id string) (mvc.Result, err
 // @Router /catan/games/{id}/upgrade-city [post]
 func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	upgradeCityRequest := &requests.UpgradeCity{}
+	upgradeCityRequest := &models.UpgradeCityRequest{}
 
 	if err := ctx.ReadJSON(upgradeCityRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	upgradeCityPbRequest := &pb_requests.UpgradeCity{
+	upgradeCityPbRequest := &pb_models.UpgradeCityRequest{
 		GameID:         id,
 		UserID:         userID,
 		ConstructionID: upgradeCityRequest.ConstructionID,
@@ -638,7 +637,7 @@ func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, e
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -673,7 +672,7 @@ func (c CatanController) UpgradeCity(ctx iris.Context, id string) (mvc.Result, e
 func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	buyDevelopmentCardPbRequest := &pb_requests.BuyDevelopmentCard{
+	buyDevelopmentCardPbRequest := &pb_models.BuyDevelopmentCardRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -682,7 +681,7 @@ func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Re
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -703,7 +702,7 @@ func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Re
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	resourceCardIDs	   body    requests.ToggleResourceCards	true	"List of Resource Card ID"
+// @Param	resourceCardIDs	   body    models.ToggleResourceCardsRequest	true	"List of Resource Card ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "player not found"
@@ -717,13 +716,13 @@ func (c CatanController) BuyDevelopmentCard(ctx iris.Context, id string) (mvc.Re
 // @Router /catan/games/{id}/toggle-resource-cards [post]
 func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	toggleResourceCardsRequest := &requests.ToggleResourceCards{}
+	toggleResourceCardsRequest := &models.ToggleResourceCardsRequest{}
 
 	if err := ctx.ReadJSON(toggleResourceCardsRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	toggleResourceCardsPbRequest := &pb_requests.ToggleResourceCards{
+	toggleResourceCardsPbRequest := &pb_models.ToggleResourceCardsRequest{
 		GameID:          id,
 		UserID:          userID,
 		ResourceCardIDs: toggleResourceCardsRequest.ResourceCardIDs,
@@ -733,7 +732,7 @@ func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.R
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -754,7 +753,7 @@ func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.R
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	resourceCardType	   body    requests.MaritimeTrade	true	"Resource Card Type"
+// @Param	resourceCardType	   body    models.MaritimeTradeRequest	true	"Resource Card Type"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 422 {object} iris.Problem "game has not started yet"
@@ -768,13 +767,13 @@ func (c CatanController) ToggleResourceCards(ctx iris.Context, id string) (mvc.R
 // @Router /catan/games/{id}/maritime-trade [post]
 func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	maritimeTradeRequest := &requests.MaritimeTrade{}
+	maritimeTradeRequest := &models.MaritimeTradeRequest{}
 
 	if err := ctx.ReadJSON(maritimeTradeRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	maritimeTradePbRequest := &pb_requests.MaritimeTrade{
+	maritimeTradePbRequest := &pb_models.MaritimeTradeRequest{
 		GameID:                    id,
 		UserID:                    userID,
 		ResourceCardType:          maritimeTradeRequest.ResourceCardType,
@@ -785,7 +784,7 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -806,7 +805,7 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	playerID	   body    requests.SendTradeOffer	true	"Player ID"
+// @Param	playerID	   body    models.SendTradeOfferRequest	true	"Player ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "player not found"
@@ -823,13 +822,13 @@ func (c CatanController) MaritimeTrade(ctx iris.Context, id string) (mvc.Result,
 // @Router /catan/games/{id}/send-trade-offer [post]
 func (c CatanController) SendTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	sendTradeOfferRequest := &requests.SendTradeOffer{}
+	sendTradeOfferRequest := &models.SendTradeOfferRequest{}
 
 	if err := ctx.ReadJSON(sendTradeOfferRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	sendTradeOfferPbRequest := &pb_requests.SendTradeOffer{
+	sendTradeOfferPbRequest := &pb_models.SendTradeOfferRequest{
 		GameID:   id,
 		UserID:   userID,
 		PlayerID: sendTradeOfferRequest.PlayerID,
@@ -839,7 +838,7 @@ func (c CatanController) SendTradeOffer(ctx iris.Context, id string) (mvc.Result
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -876,7 +875,7 @@ func (c CatanController) SendTradeOffer(ctx iris.Context, id string) (mvc.Result
 func (c CatanController) ConfirmTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	confirmTradeOfferPbRequest := &pb_requests.ConfirmTradeOffer{
+	confirmTradeOfferPbRequest := &pb_models.ConfirmTradeOfferRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -885,7 +884,7 @@ func (c CatanController) ConfirmTradeOffer(ctx iris.Context, id string) (mvc.Res
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -920,7 +919,7 @@ func (c CatanController) ConfirmTradeOffer(ctx iris.Context, id string) (mvc.Res
 func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	cancelTradeOfferPbRequest := &pb_requests.CancelTradeOffer{
+	cancelTradeOfferPbRequest := &pb_models.CancelTradeOfferRequest{
 		GameID: id,
 		UserID: userID,
 	}
@@ -929,7 +928,7 @@ func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Resu
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -950,9 +949,9 @@ func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Resu
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	developmentCardID	   body    requests.PlayKnightCard	true	"Development Card ID"
-// @Param	terrainID	   body    requests.PlayKnightCard	true	"Terrain ID"
-// @Param	playerID	   body    requests.PlayKnightCard	false	"Player ID"
+// @Param	developmentCardID	   body    models.PlayKnightCardRequest	true	"Development Card ID"
+// @Param	terrainID	   body    models.PlayKnightCardRequest	true	"Terrain ID"
+// @Param	playerID	   body    models.PlayKnightCardRequest	false	"Player ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "development card not found"
@@ -968,13 +967,13 @@ func (c CatanController) CancelTradeOffer(ctx iris.Context, id string) (mvc.Resu
 // @Router /catan/games/{id}/play-knight-card [post]
 func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	playKnightCardRequest := &requests.PlayKnightCard{}
+	playKnightCardRequest := &models.PlayKnightCardRequest{}
 
 	if err := ctx.ReadJSON(playKnightCardRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	playKnightCardPbRequest := &pb_requests.PlayKnightCard{
+	playKnightCardPbRequest := &pb_models.PlayKnightCardRequest{
 		GameID:            id,
 		UserID:            userID,
 		DevelopmentCardID: playKnightCardRequest.DevelopmentCardID,
@@ -986,7 +985,7 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -1007,8 +1006,8 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	developmentCardID	   body    requests.PlayRoadBuildingCard	true	"Development Card ID"
-// @Param	pathIDs	   body    requests.PlayRoadBuildingCard	true	"List of Path ID"
+// @Param	developmentCardID	   body    models.PlayRoadBuildingCardRequest	true	"Development Card ID"
+// @Param	pathIDs	   body    models.PlayRoadBuildingCardRequest	true	"List of Path ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "development card not found"
@@ -1024,13 +1023,13 @@ func (c CatanController) PlayKnightCard(ctx iris.Context, id string) (mvc.Result
 // @Router /catan/games/{id}/play-road-building-card [post]
 func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	playRoadBuildingCardRequest := &requests.PlayRoadBuildingCard{}
+	playRoadBuildingCardRequest := &models.PlayRoadBuildingCardRequest{}
 
 	if err := ctx.ReadJSON(playRoadBuildingCardRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	playRoadBuildingCardPbRequest := &pb_requests.PlayRoadBuildingCard{
+	playRoadBuildingCardPbRequest := &pb_models.PlayRoadBuildingCardRequest{
 		GameID:            id,
 		UserID:            userID,
 		DevelopmentCardID: playRoadBuildingCardRequest.DevelopmentCardID,
@@ -1041,7 +1040,7 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -1062,8 +1061,8 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	developmentCardID	   body    requests.PlayYearOfPlentyCard	true	"Development Card ID"
-// @Param	resourceCardTypes	   body    requests.PlayYearOfPlentyCard	true	"List of Resource Card Type"
+// @Param	developmentCardID	   body    models.PlayYearOfPlentyCardRequest	true	"Development Card ID"
+// @Param	resourceCardTypes	   body    models.PlayYearOfPlentyCardRequest	true	"List of Resource Card Type"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "development card not found"
@@ -1078,13 +1077,13 @@ func (c CatanController) PlayRoadBuildingCard(ctx iris.Context, id string) (mvc.
 // @Router /catan/games/{id}/play-year-of-plenty-card [post]
 func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	playYearOfPlentyCardRequest := &requests.PlayYearOfPlentyCard{}
+	playYearOfPlentyCardRequest := &models.PlayYearOfPlentyCardRequest{}
 
 	if err := ctx.ReadJSON(playYearOfPlentyCardRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	playYearOfPlentyCardPbRequest := &pb_requests.PlayYearOfPlentyCard{
+	playYearOfPlentyCardPbRequest := &pb_models.PlayYearOfPlentyCardRequest{
 		GameID:                     id,
 		UserID:                     userID,
 		DevelopmentCardID:          playYearOfPlentyCardRequest.DevelopmentCardID,
@@ -1095,7 +1094,7 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -1116,8 +1115,8 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	developmentCardID	   body    requests.PlayMonopolyCard	true	"Development Card ID"
-// @Param	resourceCardType	   body    requests.PlayMonopolyCard	true	"Resource Card Type"
+// @Param	developmentCardID	   body    models.PlayMonopolyCardRequest	true	"Development Card ID"
+// @Param	resourceCardType	   body    models.PlayMonopolyCardRequest	true	"Resource Card Type"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "development card not found"
@@ -1132,13 +1131,13 @@ func (c CatanController) PlayYearOfPlentyCard(ctx iris.Context, id string) (mvc.
 // @Router /catan/games/{id}/play-monopoly-card [post]
 func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	playMonopolyCardRequest := &requests.PlayMonopolyCard{}
+	playMonopolyCardRequest := &models.PlayMonopolyCardRequest{}
 
 	if err := ctx.ReadJSON(playMonopolyCardRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	playMonopolyCardPbRequest := &pb_requests.PlayMonopolyCard{
+	playMonopolyCardPbRequest := &pb_models.PlayMonopolyCardRequest{
 		GameID:                    id,
 		UserID:                    userID,
 		DevelopmentCardID:         playMonopolyCardRequest.DevelopmentCardID,
@@ -1149,7 +1148,7 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 
@@ -1170,7 +1169,7 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 // @Accept  json
 // @Produce  json
 // @Param	id	   path    string	true	"Game ID"
-// @Param	developmentCardID	   body    requests.PlayVictoryPointCard	true	"Development Card ID"
+// @Param	developmentCardID	   body    models.PlayVictoryPointCardRequest	true	"Development Card ID"
 // @Success 200 {nil} nil "ok"
 // @Failure 400 {object} iris.Problem "the request contains invalid parameters"
 // @Failure 404 {object} iris.Problem "development card not found"
@@ -1185,13 +1184,13 @@ func (c CatanController) PlayMonopolyCard(ctx iris.Context, id string) (mvc.Resu
 // @Router /catan/games/{id}/play-victory-point-card [post]
 func (c CatanController) PlayVictoryPointCard(ctx iris.Context, id string) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
-	playVictoryPointCardRequest := &requests.PlayVictoryPointCard{}
+	playVictoryPointCardRequest := &models.PlayVictoryPointCardRequest{}
 
 	if err := ctx.ReadJSON(playVictoryPointCardRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	playVictoryPointCardPbRequest := &pb_requests.PlayVictoryPointCard{
+	playVictoryPointCardPbRequest := &pb_models.PlayVictoryPointCardRequest{
 		GameID:            id,
 		UserID:            userID,
 		DevelopmentCardID: playVictoryPointCardRequest.DevelopmentCardID,
@@ -1201,7 +1200,7 @@ func (c CatanController) PlayVictoryPointCard(ctx iris.Context, id string) (mvc.
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		UserID: userID,
 	}
 

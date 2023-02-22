@@ -3,24 +3,28 @@ module github.com/vulpes-ferrilata/api-gateway
 go 1.19
 
 require (
-	github.com/go-playground/locales v0.14.0
+	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/pkg/v5 v5.6.0
 	github.com/go-playground/pure v4.2.0+incompatible
-	github.com/go-playground/universal-translator v0.18.0
-	github.com/go-playground/validator/v10 v10.11.1
+	github.com/go-playground/universal-translator v0.18.1
+	github.com/go-playground/validator/v10 v10.11.2
 	github.com/gocql/gocql v1.2.1
+	github.com/iris-contrib/swagger/v12 v12.0.1
 	github.com/kataras/iris/v12 v12.2.0-beta4
 	github.com/kataras/neffos v0.0.20
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.3.2
-	github.com/vulpes-ferrilata/authentication-service-proto v0.0.0-20220927111235-b2eab51e8756
-	github.com/vulpes-ferrilata/catan-service-proto v0.0.0-20221218111551-27ed3736d612
-	github.com/vulpes-ferrilata/chat-service-proto v0.0.0-20220930092048-8d1c85a124ec
-	github.com/vulpes-ferrilata/user-service-proto v0.0.0-20220927110550-ba6441dde29e
-	go.mongodb.org/mongo-driver v1.10.1
+	github.com/swaggo/swag v1.8.7
+	github.com/vulpes-ferrilata/authentication-service-proto v1.0.0
+	github.com/vulpes-ferrilata/catan-service-proto v1.0.0
+	github.com/vulpes-ferrilata/chat-service-proto v1.0.0
+	github.com/vulpes-ferrilata/custom-validator v1.0.0
+	github.com/vulpes-ferrilata/slices v1.0.1
+	github.com/vulpes-ferrilata/user-service-proto v1.0.1
+	go.mongodb.org/mongo-driver v1.11.1
 	go.uber.org/dig v1.15.0
-	google.golang.org/genproto v0.0.0-20220803205849-8f55acc8769f
-	google.golang.org/grpc v1.49.0
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
+	google.golang.org/grpc v1.52.3
 )
 
 require (
@@ -34,12 +38,10 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/flosch/pongo2/v4 v4.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
@@ -59,7 +61,6 @@ require (
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
 	github.com/iris-contrib/jade v1.1.4 // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
-	github.com/iris-contrib/swagger/v12 v12.0.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kataras/blocks v0.0.6 // indirect
@@ -89,23 +90,20 @@ require (
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/swaggo/swag v1.8.7 // indirect
 	github.com/tdewolff/minify/v2 v2.12.0 // indirect
 	github.com/tdewolff/parse/v2 v2.6.1 // indirect
-	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yosssi/ace v0.0.5 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -8,12 +8,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/saga"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/mappers"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/requests"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/authentication/models"
 	authentication_pb "github.com/vulpes-ferrilata/authentication-service-proto/pb"
-	authentication_pb_requests "github.com/vulpes-ferrilata/authentication-service-proto/pb/requests"
+	authentication_pb_models "github.com/vulpes-ferrilata/authentication-service-proto/pb/models"
 	user_pb "github.com/vulpes-ferrilata/user-service-proto/pb"
-	user_pb_requests "github.com/vulpes-ferrilata/user-service-proto/pb/requests"
+	user_pb_models "github.com/vulpes-ferrilata/user-service-proto/pb/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -43,7 +42,7 @@ type AuthenticationController struct {
 // @Failure 422 {object} iris.Problem "unable to encrypt password"
 // @Router /auth/register [post]
 func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, error) {
-	registerRequest := &requests.Register{}
+	registerRequest := &models.RegisterRequest{}
 
 	if err := ctx.ReadJSON(registerRequest); err != nil {
 		return nil, errors.WithStack(err)
@@ -57,7 +56,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 	if err := coordinator.Execute(ctx,
 		&saga.Step{
 			Handle: func(ctx context.Context) error {
-				createUserCredentialPbRequest := &authentication_pb_requests.CreateUserCredential{
+				createUserCredentialPbRequest := &authentication_pb_models.CreateUserCredentialRequest{
 					UserCredentialID: userCredentialID,
 					UserID:           userID,
 					Email:            registerRequest.Email,
@@ -71,7 +70,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 				return nil
 			},
 			Compensate: func(ctx context.Context) error {
-				deleteUserCredentialPbRequest := &authentication_pb_requests.DeleteUserCredential{
+				deleteUserCredentialPbRequest := &authentication_pb_models.DeleteUserCredentialRequest{
 					UserCredentialID: userCredentialID,
 				}
 
@@ -84,7 +83,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 		},
 		&saga.Step{
 			Handle: func(ctx context.Context) error {
-				createUserPbRequest := &user_pb_requests.CreateUser{
+				createUserPbRequest := &user_pb_models.CreateUserRequest{
 					UserID:      userID,
 					DisplayName: registerRequest.DisplayName,
 				}
@@ -99,7 +98,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 		return nil, errors.WithStack(err)
 	}
 
-	userResponse := &responses.User{
+	userResponse := &models.User{
 		ID: userID,
 	}
 
@@ -121,7 +120,7 @@ func (a AuthenticationController) PostRegister(ctx iris.Context) (mvc.Result, er
 // @Failure 422 {object} iris.Problem "password is invalid"
 // @Router /auth/login [post]
 func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error) {
-	loginRequest := &requests.Login{}
+	loginRequest := &models.LoginRequest{}
 
 	if err := ctx.ReadJSON(loginRequest); err != nil {
 		return nil, errors.WithStack(err)
@@ -129,7 +128,7 @@ func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error
 
 	claimID := primitive.NewObjectID().Hex()
 
-	loginPbRequest := &authentication_pb_requests.Login{
+	loginPbRequest := &authentication_pb_models.LoginRequest{
 		ClaimID:  claimID,
 		Email:    loginRequest.Email,
 		Password: loginRequest.Password,
@@ -139,7 +138,7 @@ func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error
 		return nil, errors.WithStack(err)
 	}
 
-	getTokenByClaimIDPbRequest := &authentication_pb_requests.GetTokenByClaimID{
+	getTokenByClaimIDPbRequest := &authentication_pb_models.GetTokenByClaimIDRequest{
 		ClaimID: claimID,
 	}
 
@@ -168,13 +167,13 @@ func (a AuthenticationController) PostLogin(ctx iris.Context) (mvc.Result, error
 // @Failure 422 {object} iris.Problem "token has been revoked"
 // @Router /auth/refresh [post]
 func (a AuthenticationController) PostRefresh(ctx iris.Context) (mvc.Result, error) {
-	refreshRequest := &requests.Refresh{}
+	refreshRequest := &models.RefreshRequest{}
 
 	if err := ctx.ReadJSON(refreshRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	getTokenByRefreshTokenPbRequest := &authentication_pb_requests.GetTokenByRefreshToken{
+	getTokenByRefreshTokenPbRequest := &authentication_pb_models.GetTokenByRefreshTokenRequest{
 		RefreshToken: refreshRequest.RefreshToken,
 	}
 
@@ -203,13 +202,13 @@ func (a AuthenticationController) PostRefresh(ctx iris.Context) (mvc.Result, err
 // @Failure 422 {object} iris.Problem "token has been revoked"
 // @Router /auth/revoke [post]
 func (a AuthenticationController) PostRevoke(ctx iris.Context) (mvc.Result, error) {
-	revokeRequest := &requests.Revoke{}
+	revokeRequest := &models.RevokeRequest{}
 
 	if err := ctx.ReadJSON(revokeRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	revokeTokenPbRequest := &authentication_pb_requests.RevokeToken{
+	revokeTokenPbRequest := &authentication_pb_models.RevokeTokenRequest{
 		RefreshToken: revokeRequest.RefreshToken,
 	}
 

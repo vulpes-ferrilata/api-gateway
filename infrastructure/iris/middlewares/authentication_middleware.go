@@ -9,7 +9,7 @@ import (
 	"github.com/kataras/iris/v12/hero"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
 	"github.com/vulpes-ferrilata/authentication-service-proto/pb"
-	"github.com/vulpes-ferrilata/authentication-service-proto/pb/requests"
+	"github.com/vulpes-ferrilata/authentication-service-proto/pb/models"
 )
 
 type TokenExtractor func(iris.Context) (string, error)
@@ -73,7 +73,7 @@ func (a AuthenticationMiddleware) Serve() iris.Handler {
 			return
 		}
 
-		getClaimByAccessTokenPbRequest := &requests.GetClaimByAccessToken{
+		getClaimByAccessTokenPbRequest := &models.GetClaimByAccessTokenRequest{
 			AccessToken: accessToken,
 		}
 

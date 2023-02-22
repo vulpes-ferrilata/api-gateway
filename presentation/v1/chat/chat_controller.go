@@ -7,13 +7,11 @@ import (
 	"github.com/kataras/neffos"
 	"github.com/pkg/errors"
 	"github.com/vulpes-ferrilata/api-gateway/infrastructure/context_values"
-	"github.com/vulpes-ferrilata/api-gateway/infrastructure/utils/slices"
 	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/mappers"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/requests"
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/models"
 	"github.com/vulpes-ferrilata/chat-service-proto/pb"
-	pb_requests "github.com/vulpes-ferrilata/chat-service-proto/pb/requests"
-	pb_responses "github.com/vulpes-ferrilata/chat-service-proto/pb/responses"
+	pb_models "github.com/vulpes-ferrilata/chat-service-proto/pb/models"
+	"github.com/vulpes-ferrilata/slices"
 )
 
 func NewChatController(chatClient pb.ChatClient, websocketServer *neffos.Server) *ChatController {
@@ -38,7 +36,7 @@ type ChatController struct {
 func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 	roomID := ctx.URLParam("roomID")
 
-	findMessagesByRoomIDPbRequest := &pb_requests.FindMessagesByRoomID{
+	findMessagesByRoomIDPbRequest := &pb_models.FindMessagesByRoomIDRequest{
 		RoomID: roomID,
 	}
 
@@ -47,9 +45,9 @@ func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponses, err := slices.Map(func(messagePbResponse *pb_responses.Message) (*responses.Message, error) {
-		return mappers.MessageMapper.ToHttpResponse(messagePbResponse)
-	}, messageListPbResponse.Messages)
+	messageResponses, err := slices.Map(func(messagePbResponse *pb_models.Message) (*models.Message, error) {
+		return mappers.MessageMapper{}.ToHttpResponse(messagePbResponse)
+	}, messageListPbResponse.Messages...)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -70,34 +68,34 @@ func (c ChatController) Get(ctx iris.Context) (mvc.Result, error) {
 func (c ChatController) Post(ctx iris.Context) (mvc.Result, error) {
 	userID := context_values.GetUserID(ctx)
 
-	messageRequest := &requests.Message{}
+	createMessageRequest := &models.CreateMessageRequest{}
 
-	if err := ctx.ReadJSON(messageRequest); err != nil {
+	if err := ctx.ReadJSON(createMessageRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	messageID := gocql.TimeUUID()
 
-	createMessagePbRequest := &pb_requests.CreateMessage{
+	createMessagePbRequest := &pb_models.CreateMessageRequest{
 		MessageID: messageID.String(),
-		RoomID:    messageRequest.RoomID,
+		RoomID:    createMessageRequest.RoomID,
 		UserID:    userID,
-		Detail:    messageRequest.Detail,
+		Detail:    createMessageRequest.Detail,
 	}
 
 	if _, err := c.chatClient.CreateMessage(ctx, createMessagePbRequest); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	messageResponse := &responses.Message{
+	messageResponse := &models.Message{
 		ID:     messageID.String(),
 		UserID: userID,
-		Detail: messageRequest.Detail,
+		Detail: createMessageRequest.Detail,
 	}
 
 	c.websocketServer.Broadcast(nil, neffos.Message{
 		Namespace: "Chat",
-		Room:      messageRequest.RoomID,
+		Room:      createMessageRequest.RoomID,
 		Event:     "MessageCreated",
 		Body:      neffos.Marshal(messageResponse),
 	})

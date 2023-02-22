@@ -1,20 +1,18 @@
 package mappers
 
 import (
-	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/responses"
-	pb_responses "github.com/vulpes-ferrilata/chat-service-proto/pb/responses"
+	"github.com/vulpes-ferrilata/api-gateway/presentation/v1/chat/models"
+	pb_models "github.com/vulpes-ferrilata/chat-service-proto/pb/models"
 )
 
-var MessageMapper messageMapper = messageMapper{}
+type MessageMapper struct{}
 
-type messageMapper struct{}
-
-func (m messageMapper) ToHttpResponse(messagePbResponse *pb_responses.Message) (*responses.Message, error) {
+func (m MessageMapper) ToHttpResponse(messagePbResponse *pb_models.Message) (*models.Message, error) {
 	if messagePbResponse == nil {
 		return nil, nil
 	}
 
-	return &responses.Message{
+	return &models.Message{
 		ID:     messagePbResponse.GetID(),
 		UserID: messagePbResponse.GetUserID(),
 		Detail: messagePbResponse.GetDetail(),
